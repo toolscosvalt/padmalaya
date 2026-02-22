@@ -23,7 +23,7 @@ export function Home({ onNavigate }: HomeProps) {
   });
   const [hasAnimated, setHasAnimated] = useState(false);
   const metricsRef = useRef<HTMLDivElement>(null);
-  const isMetricsVisible = useIntersectionObserver(metricsRef, { threshold: 0.3 });
+  const isMetricsVisible = useIntersectionObserver(metricsRef, { threshold: 0.1 });
 
   useEffect(() => {
     fetchData();
@@ -31,6 +31,7 @@ export function Home({ onNavigate }: HomeProps) {
 
   useEffect(() => {
     if (metricsSettings && isMetricsVisible && !hasAnimated) {
+      console.log('Starting metrics animation with:', metricsSettings);
       setHasAnimated(true);
       const duration = 2000;
       const steps = 60;
@@ -63,6 +64,12 @@ export function Home({ onNavigate }: HomeProps) {
       return () => clearInterval(timer);
     }
   }, [metricsSettings, isMetricsVisible, hasAnimated]);
+
+  useEffect(() => {
+    console.log('Metrics visibility:', isMetricsVisible);
+    console.log('Has animated:', hasAnimated);
+    console.log('Metrics settings:', metricsSettings);
+  }, [isMetricsVisible, hasAnimated, metricsSettings]);
 
   async function fetchData() {
     const [heroResult, metricsResult, projectsResult, reviewsResult] = await Promise.all([
@@ -131,7 +138,7 @@ export function Home({ onNavigate }: HomeProps) {
           <div className="grid grid-cols-1 md:grid-cols-4 gap-12 md:gap-8">
             <div className="text-center">
               <div className="font-serif text-5xl md:text-6xl lg:text-7xl font-light text-[#2DB6E8] mb-2">
-                {metricsSettings ? `${animatedMetrics.years}+` : '0+'}
+                {(hasAnimated || !metricsSettings) ? `${animatedMetrics.years}+` : `${metricsSettings.years_of_experience}+`}
               </div>
               <div className="w-16 h-px bg-[#D4A24C] mx-auto mb-3"></div>
               <p className="text-sm md:text-base uppercase tracking-wider text-[#2F6F6B]">
@@ -141,7 +148,7 @@ export function Home({ onNavigate }: HomeProps) {
 
             <div className="text-center">
               <div className="font-serif text-5xl md:text-6xl lg:text-7xl font-light text-[#2DB6E8] mb-2">
-                {metricsSettings ? `${animatedMetrics.projects}+` : '0+'}
+                {(hasAnimated || !metricsSettings) ? `${animatedMetrics.projects}+` : `${metricsSettings.projects_completed}+`}
               </div>
               <div className="w-16 h-px bg-[#D4A24C] mx-auto mb-3"></div>
               <p className="text-sm md:text-base uppercase tracking-wider text-[#2F6F6B]">
@@ -151,7 +158,7 @@ export function Home({ onNavigate }: HomeProps) {
 
             <div className="text-center">
               <div className="font-serif text-5xl md:text-6xl lg:text-7xl font-light text-[#2DB6E8] mb-2">
-                {metricsSettings ? `${animatedMetrics.families.toLocaleString()}+` : '0+'}
+                {(hasAnimated || !metricsSettings) ? `${animatedMetrics.families.toLocaleString()}+` : `${metricsSettings.happy_families.toLocaleString()}+`}
               </div>
               <div className="w-16 h-px bg-[#D4A24C] mx-auto mb-3"></div>
               <p className="text-sm md:text-base uppercase tracking-wider text-[#2F6F6B]">
