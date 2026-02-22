@@ -23,7 +23,9 @@ export function Contact() {
 
   const handleWhatsApp = () => {
     if (contactInfo?.whatsapp) {
-      window.open(`https://wa.me/${contactInfo.whatsapp.replace(/[^0-9]/g, '')}`, '_blank');
+      const phoneNumber = contactInfo.whatsapp.replace(/[^0-9]/g, '');
+      const defaultMessage = encodeURIComponent('Hey, I am interested in learning more about Padmalaya Group properties. Could you please share more details?');
+      window.open(`https://wa.me/${phoneNumber}?text=${defaultMessage}`, '_blank');
     }
   };
 

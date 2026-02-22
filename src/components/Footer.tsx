@@ -13,15 +13,18 @@ export function Footer({ contactInfo }: FooterProps) {
       <div className="container-custom">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-12 md:gap-8 mb-12">
           <div>
-            <div className="mb-4">
+            <div className="flex items-center space-x-3 mb-4">
               <img
-                src="/logo-padmalaya.png"
+                src="/logo-icon.png"
                 alt="Padmalaya Group"
-                className="h-14 md:h-16 w-auto object-contain brightness-0 invert"
+                className="h-12 md:h-14 w-auto object-contain brightness-0 invert"
               />
+              <span className="font-serif text-2xl md:text-3xl font-semibold tracking-wide text-white">
+                PADMALAYA
+              </span>
             </div>
             <p className="text-[#F8FAFB]/80 leading-relaxed text-sm md:text-base">
-              Building legacies of trust and quality since 1982. Creating spaces where families build their futures.
+              Building legacies of trust and quality since 1985. Creating spaces where families build their futures.
             </p>
           </div>
 

@@ -38,19 +38,22 @@ export function Navigation({ currentPage, onNavigate }: NavigationProps) {
   return (
     <nav
       className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
-        isScrolled ? 'bg-white shadow-md py-4' : 'bg-transparent py-6'
+        isScrolled ? 'bg-white shadow-md py-2 md:py-3' : 'bg-transparent py-3 md:py-4'
       }`}
     >
       <div className="container-custom flex items-center justify-between">
         <button
           onClick={() => handleNavigation('home')}
-          className="flex items-center space-x-3"
+          className="flex items-center space-x-3 group"
         >
           <img
-            src="/logo-padmalaya.png"
+            src="/logo-icon.png"
             alt="Padmalaya Group"
-            className="h-12 md:h-14 w-auto object-contain"
+            className="h-16 md:h-20 w-auto object-contain"
           />
+          <span className="font-serif text-2xl md:text-3xl font-semibold tracking-wide text-[#2DB6E8] transition-colors duration-200">
+            PADMALAYA
+          </span>
         </button>
 
         <div className="hidden md:flex items-center space-x-10">
