@@ -3,6 +3,7 @@ import { supabase } from '../lib/supabase';
 import { Project, ProjectImage } from '../lib/types';
 import { Plus, Edit2, Trash2, Save, X, Lock, LogOut } from 'lucide-react';
 import { ReviewsManager } from '../components/ReviewsManager';
+import MetricsManager from '../components/MetricsManager';
 
 interface AdminProps {
   isAuthenticated: boolean;
@@ -10,7 +11,7 @@ interface AdminProps {
 }
 
 export function Admin({ isAuthenticated, onAuthChange }: AdminProps) {
-  const [activeTab, setActiveTab] = useState<'projects' | 'reviews' | 'settings'>('projects');
+  const [activeTab, setActiveTab] = useState<'projects' | 'reviews' | 'settings' | 'metrics'>('projects');
   const [projects, setProjects] = useState<Project[]>([]);
   const [editingProject, setEditingProject] = useState<Project | null>(null);
   const [showProjectForm, setShowProjectForm] = useState(false);
@@ -323,6 +324,16 @@ export function Admin({ isAuthenticated, onAuthChange }: AdminProps) {
               Customer Reviews
             </button>
             <button
+              onClick={() => setActiveTab('metrics')}
+              className={`pb-4 px-2 font-medium transition-colors ${
+                activeTab === 'metrics'
+                  ? 'text-[#2DB6E8] border-b-2 border-[#2DB6E8]'
+                  : 'text-[#2F6F6B]/60 hover:text-[#2F6F6B]'
+              }`}
+            >
+              Metrics
+            </button>
+            <button
               onClick={() => setActiveTab('settings')}
               className={`pb-4 px-2 font-medium transition-colors ${
                 activeTab === 'settings'
@@ -337,6 +348,10 @@ export function Admin({ isAuthenticated, onAuthChange }: AdminProps) {
 
         {activeTab === 'reviews' ? (
           <ReviewsManager onMessage={showMessage} />
+        ) : activeTab === 'metrics' ? (
+          <div className="max-w-2xl">
+            <MetricsManager />
+          </div>
         ) : activeTab === 'settings' ? (
           <div className="max-w-2xl">
             <h2 className="font-serif text-2xl font-light mb-6">Site Settings</h2>
