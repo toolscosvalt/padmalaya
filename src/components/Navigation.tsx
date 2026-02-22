@@ -20,7 +20,27 @@ export function Navigation({ currentPage, onNavigate }: NavigationProps) {
     };
 
     window.addEventListener('scroll', handleScroll);
-    return () => window.removeEventListener('scroll', handleScroll);
+
+    const channel = supabase
+      .channel('site_settings_changes')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'site_settings',
+          filter: 'key=eq.logo_url',
+        },
+        () => {
+          fetchLogoUrl();
+        }
+      )
+      .subscribe();
+
+    return () => {
+      window.removeEventListener('scroll', handleScroll);
+      supabase.removeChannel(channel);
+    };
   }, []);
 
   async function fetchLogoUrl() {
