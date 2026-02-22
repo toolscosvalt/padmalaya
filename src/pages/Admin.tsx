@@ -1,8 +1,8 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { supabase } from '../lib/supabase';
 import { Project, ProjectImage } from '../lib/types';
 import { convertGoogleDriveUrl } from '../lib/utils';
-import { Plus, Edit2, Trash2, Save, X, Lock, LogOut, Upload, User, Link } from 'lucide-react';
+import { Plus, Edit2, Trash2, Save, X, Lock, LogOut, User, Link } from 'lucide-react';
 import { ReviewsManager } from '../components/ReviewsManager';
 import MetricsManager from '../components/MetricsManager';
 
@@ -24,8 +24,6 @@ export function Admin({ isAuthenticated, onAuthChange }: AdminProps) {
   const [isLoading, setIsLoading] = useState(false);
   const [ceoImageUrl, setCeoImageUrl] = useState('');
   const [ceoImageUrlInput, setCeoImageUrlInput] = useState('');
-  const [ceoImageUploading, setCeoImageUploading] = useState(false);
-  const ceoFileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     if (isAuthenticated) {
@@ -42,46 +40,8 @@ export function Admin({ isAuthenticated, onAuthChange }: AdminProps) {
       .maybeSingle();
 
     if (data && data.value) {
-      setCeoImageUrl(data.value);
+      setCeoImageUrl(data.value as string);
     }
-  }
-
-  async function handleCeoImageUpload(file: File) {
-    if (!file) return;
-
-    setCeoImageUploading(true);
-
-    const ext = file.name.split('.').pop();
-    const filename = `ceo-image.${ext}`;
-
-    const { error: uploadError } = await supabase.storage
-      .from('logos')
-      .upload(filename, file, { upsert: true });
-
-    if (uploadError) {
-      showMessage('error', 'Error uploading image: ' + uploadError.message);
-      setCeoImageUploading(false);
-      return;
-    }
-
-    const { data: urlData } = supabase.storage.from('logos').getPublicUrl(filename);
-    const publicUrl = urlData.publicUrl;
-
-    const { error: dbError } = await supabase
-      .from('site_settings')
-      .upsert(
-        { key: 'ceo_image', value: publicUrl, updated_at: new Date().toISOString() },
-        { onConflict: 'key' }
-      );
-
-    if (dbError) {
-      showMessage('error', 'Error saving image URL: ' + dbError.message);
-    } else {
-      showMessage('success', 'CEO image updated successfully!');
-      setCeoImageUrl(publicUrl);
-    }
-
-    setCeoImageUploading(false);
   }
 
   async function handleCeoImageUrlSave() {
@@ -91,10 +51,8 @@ export function Admin({ isAuthenticated, onAuthChange }: AdminProps) {
 
     const { error } = await supabase
       .from('site_settings')
-      .upsert(
-        { key: 'ceo_image', value: converted, updated_at: new Date().toISOString() },
-        { onConflict: 'key' }
-      );
+      .update({ value: converted, updated_at: new Date().toISOString() })
+      .eq('key', 'ceo_image');
 
     if (error) {
       showMessage('error', 'Error saving image URL: ' + error.message);
@@ -393,65 +351,37 @@ export function Admin({ isAuthenticated, onAuthChange }: AdminProps) {
             <h2 className="font-serif text-2xl font-light mb-6">Site Settings</h2>
 
             <div className="bg-white rounded-lg shadow-md p-6">
-              <h3 className="font-medium text-lg mb-4">CEO Image</h3>
-              <p className="text-sm text-[#2F6F6B]/70 mb-4">
-                Upload a photo for the CEO section on the About page.
+              <h3 className="font-medium text-lg mb-1">CEO Image</h3>
+              <p className="text-sm text-[#2F6F6B]/70 mb-6">
+                Paste a Google Drive share link to set the CEO photo on the About page.
               </p>
 
               <div className="space-y-4">
-                <div
-                  className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center cursor-pointer hover:border-[#2DB6E8] transition-colors"
-                  onClick={() => ceoFileInputRef.current?.click()}
-                >
-                  {ceoImageUrl ? (
-                    <div className="flex flex-col items-center gap-3">
-                      <img
-                        src={convertGoogleDriveUrl(ceoImageUrl)}
-                        alt="CEO"
-                        className="w-32 h-40 object-cover rounded-lg"
-                      />
-                      <p className="text-sm text-[#2F6F6B]/60">Click to replace image</p>
+                {ceoImageUrl && (
+                  <div className="flex items-center gap-4 p-3 bg-[#F8FAFB] rounded-lg">
+                    <img
+                      src={ceoImageUrl}
+                      alt="CEO"
+                      className="w-20 h-24 object-cover rounded-lg flex-shrink-0"
+                    />
+                    <div className="min-w-0">
+                      <p className="text-xs font-medium text-[#2F6F6B] mb-1">Current image</p>
+                      <p className="text-xs text-[#2F6F6B]/50 truncate">{ceoImageUrl}</p>
                     </div>
-                  ) : (
-                    <div className="flex flex-col items-center gap-3 text-[#2F6F6B]/50">
-                      <User size={48} />
-                      <p className="text-sm">Click to upload CEO photo</p>
-                      <p className="text-xs">JPG, PNG, WEBP supported</p>
-                    </div>
-                  )}
-                  {ceoImageUploading && (
-                    <div className="mt-3">
-                      <div className="w-full bg-gray-200 rounded-full h-1.5">
-                        <div className="bg-[#2DB6E8] h-1.5 rounded-full animate-pulse w-3/4"></div>
-                      </div>
-                      <p className="text-xs text-[#2DB6E8] mt-1">Uploading...</p>
-                    </div>
-                  )}
-                </div>
+                  </div>
+                )}
 
-                <input
-                  ref={ceoFileInputRef}
-                  type="file"
-                  accept="image/*"
-                  className="hidden"
-                  onChange={(e) => {
-                    const file = e.target.files?.[0];
-                    if (file) handleCeoImageUpload(file);
-                  }}
-                />
+                {!ceoImageUrl && (
+                  <div className="flex items-center justify-center gap-3 p-8 border-2 border-dashed border-gray-200 rounded-lg text-[#2F6F6B]/40">
+                    <User size={40} />
+                    <p className="text-sm">No image set yet</p>
+                  </div>
+                )}
 
-                <button
-                  type="button"
-                  disabled={ceoImageUploading}
-                  onClick={() => ceoFileInputRef.current?.click()}
-                  className="btn-primary disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  <Upload size={20} className="inline mr-2" />
-                  {ceoImageUploading ? 'Uploading...' : 'Upload CEO Image'}
-                </button>
-
-                <div className="mt-4 border-t pt-4">
-                  <p className="text-sm font-medium text-[#2F6F6B] mb-2">Or paste a Google Drive share link</p>
+                <div>
+                  <label className="block text-sm font-medium text-[#2F6F6B] mb-2">
+                    Paste image URL
+                  </label>
                   <div className="flex gap-2">
                     <input
                       type="text"
@@ -467,10 +397,10 @@ export function Admin({ isAuthenticated, onAuthChange }: AdminProps) {
                       className="btn-primary disabled:opacity-50 disabled:cursor-not-allowed whitespace-nowrap"
                     >
                       <Link size={16} className="inline mr-1" />
-                      Save URL
+                      Save
                     </button>
                   </div>
-                  <p className="text-xs text-[#2F6F6B]/50 mt-1">Google Drive share links are automatically converted to display format</p>
+                  <p className="text-xs text-[#2F6F6B]/50 mt-1">Google Drive share links are automatically converted to a displayable format</p>
                 </div>
               </div>
             </div>

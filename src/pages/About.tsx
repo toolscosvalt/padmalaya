@@ -2,7 +2,6 @@ import { useEffect, useState } from 'react';
 import { AnimatedSection } from '../components/AnimatedSection';
 import { supabase } from '../lib/supabase';
 import { AboutSettings } from '../lib/types';
-import { convertGoogleDriveUrl } from '../lib/utils';
 import { Building2, Heart, Award, Users, User } from 'lucide-react';
 
 export function About() {
@@ -131,7 +130,7 @@ export function About() {
                 <div className="aspect-[3/4] bg-gradient-to-br from-[#2F6F6B]/10 to-[#2DB6E8]/10 rounded-lg overflow-hidden">
                   {ceoImage ? (
                     <img
-                      src={convertGoogleDriveUrl(ceoImage)}
+                      src={ceoImage}
                       alt="Mr. Rakesh Saraff - CEO"
                       className="w-full h-full object-cover"
                     />
