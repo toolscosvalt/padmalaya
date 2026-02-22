@@ -16,7 +16,10 @@ export function Navigation({ currentPage, onNavigate }: NavigationProps) {
     };
 
     window.addEventListener('scroll', handleScroll);
-    return () => window.removeEventListener('scroll', handleScroll);
+
+    return () => {
+      window.removeEventListener('scroll', handleScroll);
+    };
   }, []);
 
   const navItems = [
@@ -44,13 +47,10 @@ export function Navigation({ currentPage, onNavigate }: NavigationProps) {
           className="flex items-center space-x-3"
         >
           <img
-            src="/logo.svg"
+            src="/logo-new.png"
             alt="Padmalaya Group"
-            className="h-10 md:h-12 w-auto"
+            className="h-12 md:h-14 w-auto object-contain"
           />
-          <span className="font-serif text-xl md:text-2xl font-medium text-[#2F6F6B] tracking-wide">
-            PADMALAYA
-          </span>
         </button>
 
         <div className="hidden md:flex items-center space-x-10">
