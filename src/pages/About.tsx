@@ -3,7 +3,6 @@ import { AnimatedSection } from '../components/AnimatedSection';
 import { supabase } from '../lib/supabase';
 import { AboutSettings } from '../lib/types';
 import { Building2, Heart, Award, Users, User } from 'lucide-react';
-import { convertGoogleDriveUrl } from '../lib/utils';
 
 export function About() {
   const [aboutSettings, setAboutSettings] = useState<AboutSettings | null>(null);
@@ -32,7 +31,7 @@ export function About() {
       .maybeSingle();
 
     if (data && data.value) {
-      setCeoImage(convertGoogleDriveUrl(data.value));
+      setCeoImage(data.value);
     }
   }
 
