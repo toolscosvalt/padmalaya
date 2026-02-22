@@ -47,9 +47,9 @@ export function Navigation({ currentPage, onNavigate }: NavigationProps) {
           className="flex items-center space-x-3"
         >
           <img
-            src="/logo.png"
+            src="/logo-new.png"
             alt="Padmalaya Group"
-            className="h-14 md:h-16 w-auto object-contain"
+            className="h-12 md:h-14 w-auto object-contain"
           />
         </button>
 
