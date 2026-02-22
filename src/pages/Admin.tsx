@@ -43,10 +43,20 @@ export function Admin({ isAuthenticated, onAuthChange }: AdminProps) {
   }
 
   async function handleSaveCeoImage(url: string) {
-    const { error } = await supabase
+    if (!url || url.trim() === '') {
+      showMessage('error', 'Please enter a valid URL');
+      return;
+    }
+
+    console.log('Saving CEO image URL:', url);
+
+    const { data, error } = await supabase
       .from('site_settings')
       .update({ value: url, updated_at: new Date().toISOString() })
-      .eq('key', 'ceo_image');
+      .eq('key', 'ceo_image')
+      .select();
+
+    console.log('Update result:', { data, error });
 
     if (error) {
       showMessage('error', 'Error updating CEO image: ' + error.message);
