@@ -11,6 +11,7 @@ export function Navigation({ currentPage, onNavigate }: NavigationProps) {
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [logoUrl, setLogoUrl] = useState('');
+  const [logoError, setLogoError] = useState(false);
 
   useEffect(() => {
     fetchLogoUrl();
@@ -44,17 +45,15 @@ export function Navigation({ currentPage, onNavigate }: NavigationProps) {
   }, []);
 
   async function fetchLogoUrl() {
-    const { data, error } = await supabase
+    const { data } = await supabase
       .from('site_settings')
       .select('value')
       .eq('key', 'logo_url')
       .maybeSingle();
 
-    console.log('Logo URL fetch:', { data, error });
-
     if (data?.value) {
-      console.log('Setting logo URL to:', data.value);
       setLogoUrl(data.value);
+      setLogoError(false);
     }
   }
 
@@ -82,16 +81,13 @@ export function Navigation({ currentPage, onNavigate }: NavigationProps) {
           onClick={() => handleNavigation('home')}
           className="flex items-center space-x-3"
         >
-          {logoUrl ? (
+          {logoUrl && !logoError ? (
             <img
               src={logoUrl}
               alt="Padmalaya Group"
-              className="h-10 md:h-12 w-auto"
-              onError={(e) => {
-                console.error('Logo failed to load:', logoUrl);
-                console.log('Image element:', e.currentTarget);
-              }}
-              onLoad={() => console.log('Logo loaded successfully:', logoUrl)}
+              className="h-10 md:h-12 w-auto object-contain"
+              onError={() => setLogoError(true)}
+              crossOrigin="anonymous"
             />
           ) : (
             <span className="font-serif text-xl md:text-2xl font-medium text-[#2F6F6B] tracking-wide">

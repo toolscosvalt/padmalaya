@@ -20,6 +20,7 @@ export function Admin({ isAuthenticated, onAuthChange }: AdminProps) {
   const [isLoading, setIsLoading] = useState(false);
   const [logoUrl, setLogoUrl] = useState('');
   const [showLogoForm, setShowLogoForm] = useState(false);
+  const [uploadingLogo, setUploadingLogo] = useState(false);
 
   useEffect(() => {
     if (isAuthenticated) {
@@ -53,31 +54,50 @@ export function Admin({ isAuthenticated, onAuthChange }: AdminProps) {
     return url.replace(/\/\//g, '/').replace(':/', '://');
   }
 
-  async function handleSaveLogo(e: React.FormEvent) {
-    e.preventDefault();
-    const formData = new FormData(e.currentTarget as HTMLFormElement);
-    const inputUrl = formData.get('logo_url') as string;
-    const newLogoUrl = convertGoogleDriveUrl(inputUrl);
+  async function handleLogoFileUpload(file: File) {
+    setUploadingLogo(true);
 
-    // Always try to update first since the row likely exists
+    const fileExt = file.name.split('.').pop();
+    const fileName = `logo-${Date.now()}.${fileExt}`;
+    const filePath = fileName;
+
+    const { error: uploadError } = await supabase.storage
+      .from('logos')
+      .upload(filePath, file, {
+        cacheControl: '3600',
+        upsert: true
+      });
+
+    if (uploadError) {
+      showMessage('error', 'Error uploading file: ' + uploadError.message);
+      setUploadingLogo(false);
+      return;
+    }
+
+    const { data: { publicUrl } } = supabase.storage
+      .from('logos')
+      .getPublicUrl(filePath);
+
+    await saveLogoUrl(publicUrl);
+    setUploadingLogo(false);
+  }
+
+  async function saveLogoUrl(url: string) {
     const updateResult = await supabase
       .from('site_settings')
-      .update({ value: newLogoUrl })
+      .update({ value: url })
       .eq('key', 'logo_url');
 
-    // If update affected no rows, then insert
     if (updateResult.error && updateResult.error.code === 'PGRST116') {
       const insertResult = await supabase
         .from('site_settings')
-        .insert({ key: 'logo_url', value: newLogoUrl });
+        .insert({ key: 'logo_url', value: url });
 
       if (insertResult.error) {
-        console.error('Logo insert error:', insertResult.error);
         showMessage('error', 'Error updating logo: ' + insertResult.error.message);
         return;
       }
     } else if (updateResult.error) {
-      console.error('Logo update error:', updateResult.error);
       showMessage('error', 'Error updating logo: ' + updateResult.error.message);
       return;
     }
@@ -85,6 +105,20 @@ export function Admin({ isAuthenticated, onAuthChange }: AdminProps) {
     showMessage('success', 'Logo updated successfully!');
     setShowLogoForm(false);
     fetchLogoUrl();
+  }
+
+  async function handleSaveLogo(e: React.FormEvent) {
+    e.preventDefault();
+    const formData = new FormData(e.currentTarget as HTMLFormElement);
+    const inputUrl = formData.get('logo_url') as string;
+
+    if (!inputUrl) {
+      showMessage('error', 'Please provide a logo URL');
+      return;
+    }
+
+    const newLogoUrl = convertGoogleDriveUrl(inputUrl);
+    await saveLogoUrl(newLogoUrl);
   }
 
   async function handleLogin(e: React.FormEvent) {
@@ -545,36 +579,76 @@ export function Admin({ isAuthenticated, onAuthChange }: AdminProps) {
                 </button>
               </div>
 
-              <form onSubmit={handleSaveLogo} className="space-y-4">
-                <div>
-                  <label className="block text-sm font-medium mb-1">Logo URL *</label>
+              <div className="space-y-6">
+                <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center">
+                  <p className="text-sm text-gray-600 mb-4">Upload a logo file (recommended)</p>
                   <input
-                    type="url"
-                    name="logo_url"
-                    defaultValue={logoUrl}
-                    required
-                    placeholder="https://example.com/logo.svg"
-                    className="w-full px-4 py-2 border border-gray-300 rounded"
+                    type="file"
+                    accept="image/svg+xml,image/png,image/jpeg,image/webp"
+                    onChange={(e) => {
+                      const file = e.target.files?.[0];
+                      if (file) {
+                        handleLogoFileUpload(file);
+                      }
+                    }}
+                    className="hidden"
+                    id="logo-upload"
+                    disabled={uploadingLogo}
                   />
-                  <p className="text-xs text-gray-500 mt-1">
-                    Recommended: SVG or PNG format, transparent background
+                  <label
+                    htmlFor="logo-upload"
+                    className={`inline-block px-6 py-2 rounded transition-colors cursor-pointer ${
+                      uploadingLogo
+                        ? 'bg-gray-300 text-gray-500'
+                        : 'bg-[#2F6F6B] text-white hover:bg-[#2DB6E8]'
+                    }`}
+                  >
+                    {uploadingLogo ? 'Uploading...' : 'Choose File'}
+                  </label>
+                  <p className="text-xs text-gray-500 mt-2">
+                    SVG, PNG, JPG, or WebP (max 5MB)
                   </p>
                 </div>
 
-                <div className="flex space-x-4 pt-4">
-                  <button type="submit" className="btn-primary flex-1">
-                    <Save size={20} className="inline mr-2" />
-                    Update Logo
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setShowLogoForm(false)}
-                    className="btn-secondary flex-1"
-                  >
-                    Cancel
-                  </button>
+                <div className="relative">
+                  <div className="absolute inset-0 flex items-center">
+                    <div className="w-full border-t border-gray-300"></div>
+                  </div>
+                  <div className="relative flex justify-center text-sm">
+                    <span className="px-2 bg-white text-gray-500">Or use a URL</span>
+                  </div>
                 </div>
-              </form>
+
+                <form onSubmit={handleSaveLogo} className="space-y-4">
+                  <div>
+                    <label className="block text-sm font-medium mb-1">Logo URL</label>
+                    <input
+                      type="url"
+                      name="logo_url"
+                      defaultValue={logoUrl}
+                      placeholder="https://example.com/logo.svg"
+                      className="w-full px-4 py-2 border border-gray-300 rounded"
+                    />
+                    <p className="text-xs text-red-500 mt-1">
+                      Note: Google Drive links may not work due to CORS restrictions. File upload is recommended.
+                    </p>
+                  </div>
+
+                  <div className="flex space-x-4 pt-4">
+                    <button type="submit" className="btn-primary flex-1">
+                      <Save size={20} className="inline mr-2" />
+                      Update Logo
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setShowLogoForm(false)}
+                      className="btn-secondary flex-1"
+                    >
+                      Cancel
+                    </button>
+                  </div>
+                </form>
+              </div>
             </div>
           </div>
         )}

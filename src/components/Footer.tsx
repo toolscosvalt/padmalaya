@@ -1,5 +1,7 @@
+import { useState, useEffect } from 'react';
 import { Phone, Mail, MapPin } from 'lucide-react';
 import { ContactSettings } from '../lib/types';
+import { supabase } from '../lib/supabase';
 
 interface FooterProps {
   contactInfo: ContactSettings | null;
@@ -7,6 +9,23 @@ interface FooterProps {
 
 export function Footer({ contactInfo }: FooterProps) {
   const currentYear = new Date().getFullYear();
+  const [logoUrl, setLogoUrl] = useState('');
+
+  useEffect(() => {
+    fetchLogoUrl();
+  }, []);
+
+  async function fetchLogoUrl() {
+    const { data } = await supabase
+      .from('site_settings')
+      .select('value')
+      .eq('key', 'logo_url')
+      .maybeSingle();
+
+    if (data?.value) {
+      setLogoUrl(data.value);
+    }
+  }
 
   return (
     <footer className="bg-[#2F6F6B] text-white py-16 md:py-20">
@@ -14,11 +33,16 @@ export function Footer({ contactInfo }: FooterProps) {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-12 md:gap-8 mb-12">
           <div>
             <div className="flex items-center space-x-3 mb-4">
-              <img
-                src="/logo.svg"
-                alt="Padmalaya Group"
-                className="h-12 w-auto brightness-0 invert"
-              />
+              {logoUrl && (
+                <img
+                  src={logoUrl}
+                  alt="Padmalaya Group"
+                  className="h-12 w-auto brightness-0 invert"
+                  onError={(e) => {
+                    e.currentTarget.style.display = 'none';
+                  }}
+                />
+              )}
               <h3 className="font-serif text-2xl md:text-3xl font-light text-white">
                 PADMALAYA
               </h3>
