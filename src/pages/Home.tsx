@@ -102,7 +102,7 @@ export function Home({ onNavigate }: HomeProps) {
           </div>
           <div className="fade-in-delay-1">
             <p className="text-lg md:text-xl lg:text-2xl mb-8 text-white/90 max-w-3xl mx-auto font-light">
-              {heroSettings?.subheadline || 'Building legacies of trust and quality since 1985'}
+              {heroSettings?.subheadline || 'Building legacies of trust and quality since 1982'}
             </p>
           </div>
           <div className="fade-in-delay-2">
