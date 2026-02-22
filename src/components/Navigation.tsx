@@ -10,7 +10,7 @@ interface NavigationProps {
 export function Navigation({ currentPage, onNavigate }: NavigationProps) {
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const [logoUrl, setLogoUrl] = useState('/logo.svg');
+  const [logoUrl, setLogoUrl] = useState('');
 
   useEffect(() => {
     fetchLogoUrl();
@@ -79,11 +79,13 @@ export function Navigation({ currentPage, onNavigate }: NavigationProps) {
           onClick={() => handleNavigation('home')}
           className="flex items-center space-x-3"
         >
-          <img
-            src={logoUrl}
-            alt="Padmalaya Group"
-            className="h-10 md:h-12 w-auto"
-          />
+          {logoUrl && (
+            <img
+              src={logoUrl}
+              alt="Padmalaya Group"
+              className="h-10 md:h-12 w-auto"
+            />
+          )}
           <span className="font-serif text-xl md:text-2xl font-medium text-[#2F6F6B] tracking-wide">
             PADMALAYA
           </span>

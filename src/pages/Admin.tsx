@@ -40,10 +40,20 @@ export function Admin({ isAuthenticated, onAuthChange }: AdminProps) {
     }
   }
 
+  function convertGoogleDriveUrl(url: string): string {
+    const match = url.match(/\/d\/([a-zA-Z0-9_-]+)/);
+    if (match) {
+      const fileId = match[1];
+      return `https://drive.google.com/uc?export=view&id=${fileId}`;
+    }
+    return url;
+  }
+
   async function handleSaveLogo(e: React.FormEvent) {
     e.preventDefault();
     const formData = new FormData(e.currentTarget as HTMLFormElement);
-    const newLogoUrl = formData.get('logo_url') as string;
+    const inputUrl = formData.get('logo_url') as string;
+    const newLogoUrl = convertGoogleDriveUrl(inputUrl);
 
     // Always try to update first since the row likely exists
     const updateResult = await supabase
