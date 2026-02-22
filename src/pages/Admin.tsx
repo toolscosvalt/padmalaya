@@ -375,10 +375,14 @@ export function Admin({ isAuthenticated, onAuthChange }: AdminProps) {
                   <input
                     type="url"
                     name="ceo_image_url"
-                    defaultValue={ceoImageUrl}
+                    value={ceoImageUrl}
+                    onChange={(e) => setCeoImageUrl(e.target.value)}
                     placeholder="https://drive.google.com/file/d/..."
                     className="w-full px-4 py-2 border border-gray-300 rounded focus:ring-2 focus:ring-[#2DB6E8] focus:border-transparent"
                   />
+                  <p className="text-xs text-[#2F6F6B]/60 mt-1">
+                    Paste Google Drive link (make sure file is set to "Anyone with the link can view")
+                  </p>
                   <p className="text-xs text-[#2F6F6B]/60 mt-1">
                     Example: https://drive.google.com/file/d/1EPOlvSObX806hDYAtGNT9fbV7NjHUp0U/view?usp=sharing
                   </p>
@@ -391,7 +395,19 @@ export function Admin({ isAuthenticated, onAuthChange }: AdminProps) {
                       src={convertGoogleDriveUrl(ceoImageUrl)}
                       alt="CEO Preview"
                       className="w-48 h-64 object-cover rounded-lg border border-gray-200"
+                      onError={(e) => {
+                        const target = e.target as HTMLImageElement;
+                        target.style.border = '2px solid red';
+                        target.alt = 'Failed to load image. Make sure the Google Drive file is shared publicly (Anyone with the link can view)';
+                      }}
+                      onLoad={(e) => {
+                        const target = e.target as HTMLImageElement;
+                        target.style.border = '1px solid #e5e7eb';
+                      }}
                     />
+                    <p className="text-xs text-red-600 mt-2">
+                      If image doesn't show, ensure Google Drive file sharing is set to "Anyone with the link can view"
+                    </p>
                   </div>
                 )}
 
