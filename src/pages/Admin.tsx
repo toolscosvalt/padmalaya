@@ -44,13 +44,9 @@ export function Admin({ isAuthenticated, onAuthChange }: AdminProps) {
     const match = url.match(/\/d\/([a-zA-Z0-9_-]+)/);
     if (match) {
       const fileId = match[1];
-      return `https://lh3.googleusercontent.com/d/${fileId}`;
+      return `https://drive.google.com/uc?export=view&id=${fileId}`;
     }
-    const idMatch = url.match(/[?&]id=([a-zA-Z0-9_-]+)/);
-    if (idMatch) {
-      return `https://lh3.googleusercontent.com/d/${idMatch[1]}`;
-    }
-    return url.replace(/\/\//g, '/').replace(':/', '://');
+    return url;
   }
 
   async function handleSaveLogo(e: React.FormEvent) {
