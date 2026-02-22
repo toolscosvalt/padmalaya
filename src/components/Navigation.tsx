@@ -1,6 +1,5 @@
 import { useState, useEffect } from 'react';
 import { Menu, X } from 'lucide-react';
-import { supabase } from '../lib/supabase';
 
 interface NavigationProps {
   currentPage: string;
@@ -10,52 +9,18 @@ interface NavigationProps {
 export function Navigation({ currentPage, onNavigate }: NavigationProps) {
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const [logoUrl, setLogoUrl] = useState('');
-  const [logoError, setLogoError] = useState(false);
 
   useEffect(() => {
-    fetchLogoUrl();
-
     const handleScroll = () => {
       setIsScrolled(window.scrollY > 20);
     };
 
     window.addEventListener('scroll', handleScroll);
 
-    const channel = supabase
-      .channel('site_settings_changes')
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'site_settings',
-          filter: 'key=eq.logo_url',
-        },
-        () => {
-          fetchLogoUrl();
-        }
-      )
-      .subscribe();
-
     return () => {
       window.removeEventListener('scroll', handleScroll);
-      supabase.removeChannel(channel);
     };
   }, []);
-
-  async function fetchLogoUrl() {
-    const { data } = await supabase
-      .from('site_settings')
-      .select('value')
-      .eq('key', 'logo_url')
-      .maybeSingle();
-
-    if (data?.value) {
-      setLogoUrl(data.value);
-      setLogoError(false);
-    }
-  }
 
   const navItems = [
     { label: 'Home', path: 'home' },
@@ -81,18 +46,11 @@ export function Navigation({ currentPage, onNavigate }: NavigationProps) {
           onClick={() => handleNavigation('home')}
           className="flex items-center space-x-3"
         >
-          {logoUrl && !logoError ? (
-            <img
-              src={logoUrl}
-              alt="Padmalaya Group"
-              className="h-10 md:h-12 w-auto object-contain"
-              onError={() => setLogoError(true)}
-            />
-          ) : (
-            <span className="font-serif text-xl md:text-2xl font-medium text-[#2F6F6B] tracking-wide">
-              PADMALAYA
-            </span>
-          )}
+          <img
+            src="/logo.png"
+            alt="Padmalaya Group"
+            className="h-14 md:h-16 w-auto object-contain"
+          />
         </button>
 
         <div className="hidden md:flex items-center space-x-10">

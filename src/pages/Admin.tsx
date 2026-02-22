@@ -18,31 +18,14 @@ export function Admin({ isAuthenticated, onAuthChange }: AdminProps) {
   const [loginEmail, setLoginEmail] = useState('');
   const [loginPassword, setLoginPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const [logoUrl, setLogoUrl] = useState('');
-  const [showLogoForm, setShowLogoForm] = useState(false);
-  const [uploadingLogo, setUploadingLogo] = useState(false);
 
   useEffect(() => {
     if (isAuthenticated) {
       fetchProjects();
-      fetchLogoUrl();
     }
   }, [isAuthenticated]);
 
-  async function fetchLogoUrl() {
-    const { data } = await supabase
-      .from('site_settings')
-      .select('value')
-      .eq('key', 'logo_url')
-      .maybeSingle();
-
-    if (data?.value) {
-      setLogoUrl(data.value);
-    }
-  }
-
   function convertGoogleDriveUrl(url: string): string {
-    // Convert Google Drive share link to direct view link
     const match = url.match(/\/d\/([a-zA-Z0-9_-]+)/);
     if (match) {
       const fileId = match[1];
@@ -53,78 +36,6 @@ export function Admin({ isAuthenticated, onAuthChange }: AdminProps) {
       return `https://drive.google.com/uc?export=view&id=${idMatch[1]}`;
     }
     return url;
-  }
-
-  async function handleLogoFileUpload(file: File) {
-    setUploadingLogo(true);
-
-    try {
-      const fileExt = file.name.split('.').pop();
-      const fileName = `logo-${Date.now()}.${fileExt}`;
-      const filePath = fileName;
-
-      const { error: uploadError } = await supabase.storage
-        .from('logos')
-        .upload(filePath, file, {
-          cacheControl: '3600',
-          upsert: true
-        });
-
-      if (uploadError) {
-        showMessage('error', 'Error uploading file: ' + uploadError.message);
-        setUploadingLogo(false);
-        return;
-      }
-
-      const { data: { publicUrl } } = supabase.storage
-        .from('logos')
-        .getPublicUrl(filePath);
-
-      await saveLogoUrl(publicUrl);
-    } catch (error) {
-      showMessage('error', 'Error uploading logo: ' + (error as Error).message);
-    } finally {
-      setUploadingLogo(false);
-    }
-  }
-
-  async function saveLogoUrl(url: string) {
-    const updateResult = await supabase
-      .from('site_settings')
-      .update({ value: url })
-      .eq('key', 'logo_url');
-
-    if (updateResult.error && updateResult.error.code === 'PGRST116') {
-      const insertResult = await supabase
-        .from('site_settings')
-        .insert({ key: 'logo_url', value: url });
-
-      if (insertResult.error) {
-        showMessage('error', 'Error updating logo: ' + insertResult.error.message);
-        return;
-      }
-    } else if (updateResult.error) {
-      showMessage('error', 'Error updating logo: ' + updateResult.error.message);
-      return;
-    }
-
-    showMessage('success', 'Logo updated successfully!');
-    setShowLogoForm(false);
-    fetchLogoUrl();
-  }
-
-  async function handleSaveLogo(e: React.FormEvent) {
-    e.preventDefault();
-    const formData = new FormData(e.currentTarget as HTMLFormElement);
-    const inputUrl = formData.get('logo_url') as string;
-
-    if (!inputUrl) {
-      showMessage('error', 'Please provide a logo URL');
-      return;
-    }
-
-    const newLogoUrl = convertGoogleDriveUrl(inputUrl);
-    await saveLogoUrl(newLogoUrl);
   }
 
   async function handleLogin(e: React.FormEvent) {
@@ -359,7 +270,7 @@ export function Admin({ isAuthenticated, onAuthChange }: AdminProps) {
           </div>
         )}
 
-        <div className="mb-8 flex flex-wrap gap-4">
+        <div className="mb-8">
           <button
             onClick={() => {
               setEditingProject(null);
@@ -370,21 +281,7 @@ export function Admin({ isAuthenticated, onAuthChange }: AdminProps) {
             <Plus size={20} />
             <span>Add New Project</span>
           </button>
-          <button
-            onClick={() => setShowLogoForm(true)}
-            className="btn-secondary inline-flex items-center space-x-2"
-          >
-            <Edit2 size={20} />
-            <span>Update Logo</span>
-          </button>
         </div>
-
-        {logoUrl && (
-          <div className="mb-8 p-4 bg-gray-50 rounded-lg inline-block">
-            <p className="text-sm text-[#2F6F6B]/60 mb-2">Current Logo:</p>
-            <img src={logoUrl} alt="Site Logo" className="h-12 w-auto" />
-          </div>
-        )}
 
         {showProjectForm && (
           <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4 overflow-y-auto">
@@ -568,93 +465,6 @@ export function Admin({ isAuthenticated, onAuthChange }: AdminProps) {
                   </button>
                 </div>
               </form>
-            </div>
-          </div>
-        )}
-
-        {showLogoForm && (
-          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-            <div className="bg-white rounded-lg p-6 md:p-8 max-w-xl w-full">
-              <div className="flex justify-between items-center mb-6">
-                <h2 className="font-serif text-2xl font-light">Update Logo</h2>
-                <button
-                  onClick={() => setShowLogoForm(false)}
-                  className="text-[#2F6F6B] hover:text-[#2DB6E8]"
-                >
-                  <X size={24} />
-                </button>
-              </div>
-
-              <div className="space-y-6">
-                <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center">
-                  <p className="text-sm text-gray-600 mb-4">Upload a logo file (recommended)</p>
-                  <input
-                    type="file"
-                    accept="image/svg+xml,image/png,image/jpeg,image/webp"
-                    onChange={(e) => {
-                      const file = e.target.files?.[0];
-                      if (file) {
-                        handleLogoFileUpload(file);
-                      }
-                    }}
-                    className="hidden"
-                    id="logo-upload"
-                    disabled={uploadingLogo}
-                  />
-                  <label
-                    htmlFor="logo-upload"
-                    className={`inline-block px-6 py-2 rounded transition-colors cursor-pointer ${
-                      uploadingLogo
-                        ? 'bg-gray-300 text-gray-500'
-                        : 'bg-[#2F6F6B] text-white hover:bg-[#2DB6E8]'
-                    }`}
-                  >
-                    {uploadingLogo ? 'Uploading...' : 'Choose File'}
-                  </label>
-                  <p className="text-xs text-gray-500 mt-2">
-                    SVG, PNG, JPG, or WebP (max 5MB)
-                  </p>
-                </div>
-
-                <div className="relative">
-                  <div className="absolute inset-0 flex items-center">
-                    <div className="w-full border-t border-gray-300"></div>
-                  </div>
-                  <div className="relative flex justify-center text-sm">
-                    <span className="px-2 bg-white text-gray-500">Or use a URL</span>
-                  </div>
-                </div>
-
-                <form onSubmit={handleSaveLogo} className="space-y-4">
-                  <div>
-                    <label className="block text-sm font-medium mb-1">Logo URL</label>
-                    <input
-                      type="url"
-                      name="logo_url"
-                      defaultValue={logoUrl}
-                      placeholder="https://example.com/logo.svg"
-                      className="w-full px-4 py-2 border border-gray-300 rounded"
-                    />
-                    <p className="text-xs text-red-500 mt-1">
-                      Note: Google Drive links may not work due to CORS restrictions. File upload is recommended.
-                    </p>
-                  </div>
-
-                  <div className="flex space-x-4 pt-4">
-                    <button type="submit" className="btn-primary flex-1">
-                      <Save size={20} className="inline mr-2" />
-                      Update Logo
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => setShowLogoForm(false)}
-                      className="btn-secondary flex-1"
-                    >
-                      Cancel
-                    </button>
-                  </div>
-                </form>
-              </div>
             </div>
           </div>
         )}
