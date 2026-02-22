@@ -69,8 +69,10 @@ export function Admin({ isAuthenticated, onAuthChange }: AdminProps) {
 
     const { error: dbError } = await supabase
       .from('site_settings')
-      .update({ value: publicUrl, updated_at: new Date().toISOString() })
-      .eq('key', 'ceo_image');
+      .upsert(
+        { key: 'ceo_image', value: publicUrl, updated_at: new Date().toISOString() },
+        { onConflict: 'key' }
+      );
 
     if (dbError) {
       showMessage('error', 'Error saving image URL: ' + dbError.message);
@@ -89,8 +91,10 @@ export function Admin({ isAuthenticated, onAuthChange }: AdminProps) {
 
     const { error } = await supabase
       .from('site_settings')
-      .update({ value: converted, updated_at: new Date().toISOString() })
-      .eq('key', 'ceo_image');
+      .upsert(
+        { key: 'ceo_image', value: converted, updated_at: new Date().toISOString() },
+        { onConflict: 'key' }
+      );
 
     if (error) {
       showMessage('error', 'Error saving image URL: ' + error.message);
