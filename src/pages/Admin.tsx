@@ -24,11 +24,14 @@ export function Admin({ isAuthenticated, onAuthChange }: AdminProps) {
   const [isLoading, setIsLoading] = useState(false);
   const [ceoImageUrl, setCeoImageUrl] = useState('');
   const [ceoImageUrlInput, setCeoImageUrlInput] = useState('');
+  const [mdImageUrl, setMdImageUrl] = useState('');
+  const [mdImageUrlInput, setMdImageUrlInput] = useState('');
 
   useEffect(() => {
     if (isAuthenticated) {
       fetchProjects();
       fetchCeoImage();
+      fetchMdImage();
     }
   }, [isAuthenticated]);
 
@@ -39,8 +42,20 @@ export function Admin({ isAuthenticated, onAuthChange }: AdminProps) {
       .eq('key', 'ceo_image')
       .maybeSingle();
 
-    if (data && data.value) {
+    if (data && data.value && data.value !== 'null') {
       setCeoImageUrl(data.value as string);
+    }
+  }
+
+  async function fetchMdImage() {
+    const { data } = await supabase
+      .from('site_settings')
+      .select('value')
+      .eq('key', 'md_image')
+      .maybeSingle();
+
+    if (data && data.value && data.value !== 'null') {
+      setMdImageUrl(data.value as string);
     }
   }
 
@@ -60,6 +75,25 @@ export function Admin({ isAuthenticated, onAuthChange }: AdminProps) {
       setCeoImageUrl(converted);
       setCeoImageUrlInput('');
       showMessage('success', 'CEO image URL saved successfully!');
+    }
+  }
+
+  async function handleMdImageUrlSave() {
+    if (!mdImageUrlInput.trim()) return;
+
+    const converted = convertGoogleDriveUrl(mdImageUrlInput.trim());
+
+    const { error } = await supabase
+      .from('site_settings')
+      .update({ value: converted, updated_at: new Date().toISOString() })
+      .eq('key', 'md_image');
+
+    if (error) {
+      showMessage('error', 'Error saving image URL: ' + error.message);
+    } else {
+      setMdImageUrl(converted);
+      setMdImageUrlInput('');
+      showMessage('success', 'MD image URL saved successfully!');
     }
   }
 
@@ -394,6 +428,61 @@ export function Admin({ isAuthenticated, onAuthChange }: AdminProps) {
                       type="button"
                       onClick={handleCeoImageUrlSave}
                       disabled={!ceoImageUrlInput.trim()}
+                      className="btn-primary disabled:opacity-50 disabled:cursor-not-allowed whitespace-nowrap"
+                    >
+                      <Link size={16} className="inline mr-1" />
+                      Save
+                    </button>
+                  </div>
+                  <p className="text-xs text-[#2F6F6B]/50 mt-1">Google Drive share links are automatically converted to a displayable format</p>
+                </div>
+              </div>
+            </div>
+
+            <div className="bg-white rounded-lg shadow-md p-6 mt-6">
+              <h3 className="font-medium text-lg mb-1">MD Image</h3>
+              <p className="text-sm text-[#2F6F6B]/70 mb-6">
+                Paste a Google Drive share link to set the Managing Director photo on the About page.
+              </p>
+
+              <div className="space-y-4">
+                {mdImageUrl && (
+                  <div className="flex items-center gap-4 p-3 bg-[#F8FAFB] rounded-lg">
+                    <img
+                      src={mdImageUrl}
+                      alt="MD"
+                      className="w-20 h-24 object-cover rounded-lg flex-shrink-0"
+                    />
+                    <div className="min-w-0">
+                      <p className="text-xs font-medium text-[#2F6F6B] mb-1">Current image</p>
+                      <p className="text-xs text-[#2F6F6B]/50 truncate">{mdImageUrl}</p>
+                    </div>
+                  </div>
+                )}
+
+                {!mdImageUrl && (
+                  <div className="flex items-center justify-center gap-3 p-8 border-2 border-dashed border-gray-200 rounded-lg text-[#2F6F6B]/40">
+                    <User size={40} />
+                    <p className="text-sm">No image set yet</p>
+                  </div>
+                )}
+
+                <div>
+                  <label className="block text-sm font-medium text-[#2F6F6B] mb-2">
+                    Paste image URL
+                  </label>
+                  <div className="flex gap-2">
+                    <input
+                      type="text"
+                      value={mdImageUrlInput}
+                      onChange={(e) => setMdImageUrlInput(e.target.value)}
+                      placeholder="https://drive.google.com/file/d/..."
+                      className="flex-1 px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#2DB6E8]/30 focus:border-[#2DB6E8]"
+                    />
+                    <button
+                      type="button"
+                      onClick={handleMdImageUrlSave}
+                      disabled={!mdImageUrlInput.trim()}
                       className="btn-primary disabled:opacity-50 disabled:cursor-not-allowed whitespace-nowrap"
                     >
                       <Link size={16} className="inline mr-1" />

@@ -7,10 +7,12 @@ import { Building2, Heart, Award, Users, User } from 'lucide-react';
 export function About() {
   const [aboutSettings, setAboutSettings] = useState<AboutSettings | null>(null);
   const [ceoImage, setCeoImage] = useState<string>('');
+  const [mdImage, setMdImage] = useState<string>('');
 
   useEffect(() => {
     fetchAboutData();
     fetchCeoImage();
+    fetchMdImage();
   }, []);
 
   async function fetchAboutData() {
@@ -30,8 +32,20 @@ export function About() {
       .eq('key', 'ceo_image')
       .maybeSingle();
 
-    if (data && data.value) {
+    if (data && data.value && data.value !== 'null') {
       setCeoImage(data.value);
+    }
+  }
+
+  async function fetchMdImage() {
+    const { data } = await supabase
+      .from('site_settings')
+      .select('value')
+      .eq('key', 'md_image')
+      .maybeSingle();
+
+    if (data && data.value && data.value !== 'null') {
+      setMdImage(data.value);
     }
   }
 
@@ -157,6 +171,52 @@ export function About() {
                       </p>
                     </div>
                   </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </AnimatedSection>
+
+      <AnimatedSection className="py-20 md:py-32 bg-white">
+        <div className="container-custom">
+          <div className="text-center mb-12">
+            <h2 className="font-serif text-3xl md:text-4xl font-light mb-2">Message from MD</h2>
+            <div className="w-24 h-px bg-[#D4A24C] mx-auto"></div>
+          </div>
+          <div className="max-w-6xl mx-auto">
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-center">
+              <div className="lg:col-span-8 lg:order-1">
+                <div className="border-r-4 border-[#D4A24C] pr-8 md:pr-12">
+                  <p className="text-xl md:text-2xl lg:text-3xl font-light text-[#2F6F6B] mb-6 leading-relaxed italic">
+                    Growing up surrounded by construction sites and blueprints, I learned that every building tells a story. At Padmalaya, we are writing stories of permanence — homes that will shelter generations, spaces that will witness milestones. Our responsibility is not just to deliver a structure; it is to deliver a promise. I am committed to carrying that promise forward with the same rigor and care that has defined this company since its founding.
+                  </p>
+                  <div className="flex items-center space-x-4">
+                    <div className="w-16 h-px bg-[#D4A24C]"></div>
+                    <div>
+                      <p className="text-base md:text-lg font-medium text-[#2F6F6B]">
+                        Mr. Veer Saraf
+                      </p>
+                      <p className="text-sm md:text-base text-[#2F6F6B]/60">
+                        Managing Director
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div className="lg:col-span-4 lg:order-2">
+                <div className="aspect-[3/4] bg-gradient-to-br from-[#2F6F6B]/10 to-[#2DB6E8]/10 rounded-lg overflow-hidden">
+                  {mdImage ? (
+                    <img
+                      src={mdImage}
+                      alt="Mr. Veer Saraf - Managing Director"
+                      className="w-full h-full object-cover"
+                    />
+                  ) : (
+                    <div className="w-full h-full flex items-center justify-center">
+                      <User className="w-24 h-24 text-[#2F6F6B]/30" />
+                    </div>
+                  )}
                 </div>
               </div>
             </div>
