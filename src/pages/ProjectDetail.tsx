@@ -21,25 +21,17 @@ export function ProjectDetail({ projectSlug, onNavigate }: ProjectDetailProps) {
   }, [projectSlug]);
 
   async function fetchProjectData() {
-    const projectResult = await supabase
-      .from('projects')
-      .select('*')
-      .eq('slug', projectSlug)
-      .maybeSingle();
-
-    if (projectResult.data) {
-      setProject(projectResult.data);
-
-      const imagesResult = await supabase
+    const [projectResult, imagesResult] = await Promise.all([
+      supabase.from('projects').select('*').eq('slug', projectSlug).maybeSingle(),
+      supabase
         .from('project_images')
         .select('*')
-        .eq('project_id', projectResult.data.id)
-        .order('display_order', { ascending: true });
+        .eq('project_id', (await supabase.from('projects').select('id').eq('slug', projectSlug).maybeSingle()).data?.id || '')
+        .order('display_order', { ascending: true }),
+    ]);
 
-      if (imagesResult.data) {
-        setImages(imagesResult.data);
-      }
-    }
+    if (projectResult.data) setProject(projectResult.data);
+    if (imagesResult.data) setImages(imagesResult.data);
   }
 
   const openLightbox = (index: number) => {
@@ -217,24 +209,12 @@ export function ProjectDetail({ projectSlug, onNavigate }: ProjectDetailProps) {
                           onClick={() => openLightbox(images.indexOf(image))}
                           className="image-hover block w-full"
                         >
-                          <div className="aspect-[4/3] overflow-hidden bg-gray-100 relative">
+                          <div className="aspect-[4/3] overflow-hidden">
                             <img
                               src={image.image_url}
                               alt={image.caption || project.name}
                               className="w-full h-full object-cover"
-                              onError={(e) => {
-                                const target = e.target as HTMLImageElement;
-                                target.style.display = 'none';
-                                const fallback = target.nextElementSibling as HTMLDivElement;
-                                if (fallback) fallback.style.display = 'flex';
-                              }}
                             />
-                            <div
-                              className="absolute inset-0 items-center justify-center text-[#2F6F6B]/40 text-sm hidden"
-                              style={{ display: 'none' }}
-                            >
-                              Image not available
-                            </div>
                             <div className="overlay"></div>
                           </div>
                           {image.caption && (

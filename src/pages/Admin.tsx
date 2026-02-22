@@ -25,19 +25,6 @@ export function Admin({ isAuthenticated, onAuthChange }: AdminProps) {
     }
   }, [isAuthenticated]);
 
-  function convertGoogleDriveUrl(url: string): string {
-    const match = url.match(/\/d\/([a-zA-Z0-9_-]+)/);
-    if (match) {
-      const fileId = match[1];
-      return `https://drive.google.com/uc?export=view&id=${fileId}`;
-    }
-    const idMatch = url.match(/[?&]id=([a-zA-Z0-9_-]+)/);
-    if (idMatch) {
-      return `https://drive.google.com/uc?export=view&id=${idMatch[1]}`;
-    }
-    return url;
-  }
-
   async function handleLogin(e: React.FormEvent) {
     e.preventDefault();
     setIsLoading(true);

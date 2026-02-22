@@ -22,15 +22,7 @@ function App() {
     handleRouteChange();
 
     window.addEventListener('hashchange', handleRouteChange);
-
-    const { data: authListener } = supabase.auth.onAuthStateChange((_event, session) => {
-      setIsAdminAuthenticated(!!session);
-    });
-
-    return () => {
-      window.removeEventListener('hashchange', handleRouteChange);
-      authListener.subscription.unsubscribe();
-    };
+    return () => window.removeEventListener('hashchange', handleRouteChange);
   }, []);
 
   async function fetchContactInfo() {
