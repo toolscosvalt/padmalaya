@@ -1,4 +1,4 @@
-import { useEffect, useState, useRef } from 'react';
+import { useEffect, useState } from 'react';
 import { ArrowRight, Star } from 'lucide-react';
 import { AnimatedSection } from '../components/AnimatedSection';
 import { ImageReveal } from '../components/ImageReveal';
@@ -22,8 +22,7 @@ export function Home({ onNavigate }: HomeProps) {
     families: 0,
   });
   const [hasAnimated, setHasAnimated] = useState(false);
-  const metricsRef = useRef<HTMLDivElement>(null);
-  const isMetricsVisible = useIntersectionObserver(metricsRef, { threshold: 0.1 });
+  const { ref: metricsRef, isVisible: isMetricsVisible } = useIntersectionObserver({ threshold: 0.3 });
 
   useEffect(() => {
     fetchData();
@@ -31,7 +30,6 @@ export function Home({ onNavigate }: HomeProps) {
 
   useEffect(() => {
     if (metricsSettings && isMetricsVisible && !hasAnimated) {
-      console.log('Starting metrics animation with:', metricsSettings);
       setHasAnimated(true);
       const duration = 2000;
       const steps = 60;
@@ -65,12 +63,6 @@ export function Home({ onNavigate }: HomeProps) {
     }
   }, [metricsSettings, isMetricsVisible, hasAnimated]);
 
-  useEffect(() => {
-    console.log('Metrics visibility:', isMetricsVisible);
-    console.log('Has animated:', hasAnimated);
-    console.log('Metrics settings:', metricsSettings);
-  }, [isMetricsVisible, hasAnimated, metricsSettings]);
-
   async function fetchData() {
     const [heroResult, metricsResult, projectsResult, reviewsResult] = await Promise.all([
       supabase.from('site_settings').select('value').eq('key', 'hero').maybeSingle(),
@@ -89,10 +81,7 @@ export function Home({ onNavigate }: HomeProps) {
     ]);
 
     if (heroResult.data?.value) setHeroSettings(heroResult.data.value);
-    if (metricsResult.data?.value) {
-      console.log('Metrics data loaded:', metricsResult.data.value);
-      setMetricsSettings(metricsResult.data.value);
-    }
+    if (metricsResult.data?.value) setMetricsSettings(metricsResult.data.value);
     if (projectsResult.data) setFeaturedProjects(projectsResult.data);
     if (reviewsResult.data) setCustomerReviews(reviewsResult.data);
   }
@@ -138,7 +127,7 @@ export function Home({ onNavigate }: HomeProps) {
           <div className="grid grid-cols-1 md:grid-cols-4 gap-12 md:gap-8">
             <div className="text-center">
               <div className="font-serif text-5xl md:text-6xl lg:text-7xl font-light text-[#2DB6E8] mb-2">
-                {(hasAnimated || !metricsSettings) ? `${animatedMetrics.years}+` : `${metricsSettings.years_of_experience}+`}
+                {`${animatedMetrics.years}+`}
               </div>
               <div className="w-16 h-px bg-[#D4A24C] mx-auto mb-3"></div>
               <p className="text-sm md:text-base uppercase tracking-wider text-[#2F6F6B]">
@@ -148,7 +137,7 @@ export function Home({ onNavigate }: HomeProps) {
 
             <div className="text-center">
               <div className="font-serif text-5xl md:text-6xl lg:text-7xl font-light text-[#2DB6E8] mb-2">
-                {(hasAnimated || !metricsSettings) ? `${animatedMetrics.projects}+` : `${metricsSettings.projects_completed}+`}
+                {`${animatedMetrics.projects}+`}
               </div>
               <div className="w-16 h-px bg-[#D4A24C] mx-auto mb-3"></div>
               <p className="text-sm md:text-base uppercase tracking-wider text-[#2F6F6B]">
@@ -158,7 +147,7 @@ export function Home({ onNavigate }: HomeProps) {
 
             <div className="text-center">
               <div className="font-serif text-5xl md:text-6xl lg:text-7xl font-light text-[#2DB6E8] mb-2">
-                {(hasAnimated || !metricsSettings) ? `${animatedMetrics.families.toLocaleString()}+` : `${metricsSettings.happy_families.toLocaleString()}+`}
+                {`${animatedMetrics.families.toLocaleString()}+`}
               </div>
               <div className="w-16 h-px bg-[#D4A24C] mx-auto mb-3"></div>
               <p className="text-sm md:text-base uppercase tracking-wider text-[#2F6F6B]">
