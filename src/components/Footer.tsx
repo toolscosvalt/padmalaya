@@ -33,7 +33,7 @@ export function Footer({ contactInfo }: FooterProps) {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-12 md:gap-8 mb-12">
           <div>
             <div className="flex items-center space-x-3 mb-4">
-              {logoUrl && (
+              {logoUrl ? (
                 <img
                   src={logoUrl}
                   alt="Padmalaya Group"
@@ -42,10 +42,11 @@ export function Footer({ contactInfo }: FooterProps) {
                     e.currentTarget.style.display = 'none';
                   }}
                 />
+              ) : (
+                <h3 className="font-serif text-2xl md:text-3xl font-light text-white">
+                  PADMALAYA
+                </h3>
               )}
-              <h3 className="font-serif text-2xl md:text-3xl font-light text-white">
-                PADMALAYA
-              </h3>
             </div>
             <p className="text-[#F8FAFB]/80 leading-relaxed text-sm md:text-base">
               Building legacies of trust and quality since 1982. Creating spaces where families build their futures.
