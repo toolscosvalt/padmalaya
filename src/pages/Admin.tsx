@@ -10,7 +10,7 @@ interface AdminProps {
 }
 
 export function Admin({ isAuthenticated, onAuthChange }: AdminProps) {
-  const [activeTab, setActiveTab] = useState<'projects' | 'reviews'>('projects');
+  const [activeTab, setActiveTab] = useState<'projects' | 'reviews' | 'settings'>('projects');
   const [projects, setProjects] = useState<Project[]>([]);
   const [editingProject, setEditingProject] = useState<Project | null>(null);
   const [showProjectForm, setShowProjectForm] = useState(false);
@@ -20,12 +20,40 @@ export function Admin({ isAuthenticated, onAuthChange }: AdminProps) {
   const [loginEmail, setLoginEmail] = useState('');
   const [loginPassword, setLoginPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [ceoImageUrl, setCeoImageUrl] = useState('');
 
   useEffect(() => {
     if (isAuthenticated) {
       fetchProjects();
+      fetchCeoImage();
     }
   }, [isAuthenticated]);
+
+  async function fetchCeoImage() {
+    const { data } = await supabase
+      .from('site_settings')
+      .select('value')
+      .eq('key', 'ceo_image')
+      .maybeSingle();
+
+    if (data && data.value) {
+      setCeoImageUrl(data.value);
+    }
+  }
+
+  async function handleSaveCeoImage(url: string) {
+    const { error } = await supabase
+      .from('site_settings')
+      .update({ value: JSON.stringify(url) })
+      .eq('key', 'ceo_image');
+
+    if (error) {
+      showMessage('error', 'Error updating CEO image: ' + error.message);
+    } else {
+      showMessage('success', 'CEO image updated successfully!');
+      setCeoImageUrl(url);
+    }
+  }
 
   function convertGoogleDriveUrl(url: string): string {
     const match = url.match(/\/d\/([a-zA-Z0-9_-]+)/);
@@ -294,11 +322,71 @@ export function Admin({ isAuthenticated, onAuthChange }: AdminProps) {
             >
               Customer Reviews
             </button>
+            <button
+              onClick={() => setActiveTab('settings')}
+              className={`pb-4 px-2 font-medium transition-colors ${
+                activeTab === 'settings'
+                  ? 'text-[#2DB6E8] border-b-2 border-[#2DB6E8]'
+                  : 'text-[#2F6F6B]/60 hover:text-[#2F6F6B]'
+              }`}
+            >
+              Settings
+            </button>
           </div>
         </div>
 
         {activeTab === 'reviews' ? (
           <ReviewsManager onMessage={showMessage} />
+        ) : activeTab === 'settings' ? (
+          <div className="max-w-2xl">
+            <h2 className="font-serif text-2xl font-light mb-6">Site Settings</h2>
+
+            <div className="bg-white rounded-lg shadow-md p-6">
+              <h3 className="font-medium text-lg mb-4">CEO Image</h3>
+              <p className="text-sm text-[#2F6F6B]/70 mb-4">
+                Update the CEO image displayed on the About page. Paste a Google Drive share link and it will be automatically converted.
+              </p>
+
+              <form
+                onSubmit={(e) => {
+                  e.preventDefault();
+                  const formData = new FormData(e.currentTarget);
+                  handleSaveCeoImage(formData.get('ceo_image_url') as string);
+                }}
+                className="space-y-4"
+              >
+                <div>
+                  <label className="block text-sm font-medium mb-1">CEO Image URL</label>
+                  <input
+                    type="url"
+                    name="ceo_image_url"
+                    defaultValue={ceoImageUrl}
+                    placeholder="https://drive.google.com/file/d/..."
+                    className="w-full px-4 py-2 border border-gray-300 rounded focus:ring-2 focus:ring-[#2DB6E8] focus:border-transparent"
+                  />
+                  <p className="text-xs text-[#2F6F6B]/60 mt-1">
+                    Example: https://drive.google.com/file/d/1EPOlvSObX806hDYAtGNT9fbV7NjHUp0U/view?usp=sharing
+                  </p>
+                </div>
+
+                {ceoImageUrl && (
+                  <div className="mt-4">
+                    <p className="text-sm font-medium mb-2">Current Image Preview:</p>
+                    <img
+                      src={convertGoogleDriveUrl(ceoImageUrl)}
+                      alt="CEO Preview"
+                      className="w-48 h-64 object-cover rounded-lg border border-gray-200"
+                    />
+                  </div>
+                )}
+
+                <button type="submit" className="btn-primary">
+                  <Save size={20} className="inline mr-2" />
+                  Update CEO Image
+                </button>
+              </form>
+            </div>
+          </div>
         ) : (
           <>
             <div className="mb-8">

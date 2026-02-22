@@ -4,6 +4,7 @@ import { AnimatedSection } from '../components/AnimatedSection';
 import { ImageReveal } from '../components/ImageReveal';
 import { supabase } from '../lib/supabase';
 import { HeroSettings, MetricsSettings, Project, CustomerReview } from '../lib/types';
+import { convertGoogleDriveUrl } from '../lib/utils';
 
 interface HomeProps {
   onNavigate: (page: string, projectSlug?: string) => void;
@@ -188,7 +189,7 @@ export function Home({ onNavigate }: HomeProps) {
                   >
                     <div className="aspect-[3/4] overflow-hidden mb-6">
                       <img
-                        src={project.hero_image_url}
+                        src={convertGoogleDriveUrl(project.hero_image_url)}
                         alt={project.name}
                         className="w-full h-full object-cover"
                       />

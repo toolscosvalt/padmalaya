@@ -2,13 +2,16 @@ import { useEffect, useState } from 'react';
 import { AnimatedSection } from '../components/AnimatedSection';
 import { supabase } from '../lib/supabase';
 import { AboutSettings } from '../lib/types';
-import { Building2, Heart, Award, Users } from 'lucide-react';
+import { Building2, Heart, Award, Users, User } from 'lucide-react';
+import { convertGoogleDriveUrl } from '../lib/utils';
 
 export function About() {
   const [aboutSettings, setAboutSettings] = useState<AboutSettings | null>(null);
+  const [ceoImage, setCeoImage] = useState<string>('');
 
   useEffect(() => {
     fetchAboutData();
+    fetchCeoImage();
   }, []);
 
   async function fetchAboutData() {
@@ -19,6 +22,18 @@ export function About() {
       .maybeSingle();
 
     if (data) setAboutSettings(data.value);
+  }
+
+  async function fetchCeoImage() {
+    const { data } = await supabase
+      .from('site_settings')
+      .select('value')
+      .eq('key', 'ceo_image')
+      .maybeSingle();
+
+    if (data && data.value) {
+      setCeoImage(convertGoogleDriveUrl(data.value));
+    }
   }
 
   const values = [
@@ -106,16 +121,44 @@ export function About() {
 
       <AnimatedSection className="py-20 md:py-32 bg-[#F8FAFB]">
         <div className="container-custom">
-          <div className="max-w-4xl mx-auto">
-            <div className="border-l-4 border-[#D4A24C] pl-8 md:pl-12">
-              <p className="text-xl md:text-2xl lg:text-3xl font-light text-[#2F6F6B] mb-6 leading-relaxed italic">
-                Real estate is not just about buildings — it is about creating spaces where families build their futures, where businesses grow, and where communities come together. Every project we undertake carries the weight of this responsibility. What began as Tirupati Developers over four decades ago continues today as Padmalaya Group, with the same principles that have always guided us: integrity, quality, and a deep respect for those who trust us with their dreams.
-              </p>
-              <div className="flex items-center space-x-4">
-                <div className="w-16 h-px bg-[#D4A24C]"></div>
-                <p className="text-base md:text-lg font-medium text-[#2F6F6B]">
-                  Mr. Rakesh Saraff
-                </p>
+          <div className="text-center mb-12">
+            <h2 className="font-serif text-3xl md:text-4xl font-light mb-2">Message from CEO</h2>
+            <div className="w-24 h-px bg-[#D4A24C] mx-auto"></div>
+          </div>
+          <div className="max-w-6xl mx-auto">
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-center">
+              <div className="lg:col-span-4">
+                <div className="aspect-[3/4] bg-gradient-to-br from-[#2F6F6B]/10 to-[#2DB6E8]/10 rounded-lg overflow-hidden">
+                  {ceoImage ? (
+                    <img
+                      src={ceoImage}
+                      alt="Mr. Rakesh Saraff - CEO"
+                      className="w-full h-full object-cover"
+                    />
+                  ) : (
+                    <div className="w-full h-full flex items-center justify-center">
+                      <User className="w-24 h-24 text-[#2F6F6B]/30" />
+                    </div>
+                  )}
+                </div>
+              </div>
+              <div className="lg:col-span-8">
+                <div className="border-l-4 border-[#D4A24C] pl-8 md:pl-12">
+                  <p className="text-xl md:text-2xl lg:text-3xl font-light text-[#2F6F6B] mb-6 leading-relaxed italic">
+                    Real estate is not just about buildings — it is about creating spaces where families build their futures, where businesses grow, and where communities come together. Every project we undertake carries the weight of this responsibility. What began as Tirupati Developers over four decades ago continues today as Padmalaya Group, with the same principles that have always guided us: integrity, quality, and a deep respect for those who trust us with their dreams.
+                  </p>
+                  <div className="flex items-center space-x-4">
+                    <div className="w-16 h-px bg-[#D4A24C]"></div>
+                    <div>
+                      <p className="text-base md:text-lg font-medium text-[#2F6F6B]">
+                        Mr. Rakesh Saraff
+                      </p>
+                      <p className="text-sm md:text-base text-[#2F6F6B]/60">
+                        CEO
+                      </p>
+                    </div>
+                  </div>
+                </div>
               </div>
             </div>
           </div>

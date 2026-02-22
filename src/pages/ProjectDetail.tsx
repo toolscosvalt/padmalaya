@@ -4,6 +4,7 @@ import { ImageReveal } from '../components/ImageReveal';
 import { supabase } from '../lib/supabase';
 import { Project, ProjectImage } from '../lib/types';
 import { MapPin, Home, Calendar, ArrowLeft, X, ChevronLeft, ChevronRight } from 'lucide-react';
+import { convertGoogleDriveUrl } from '../lib/utils';
 
 interface ProjectDetailProps {
   projectSlug: string;
@@ -93,7 +94,7 @@ export function ProjectDetail({ projectSlug, onNavigate }: ProjectDetailProps) {
     <div className="min-h-screen pt-20 md:pt-24">
       <section className="relative h-[60vh] md:h-[70vh] overflow-hidden">
         <img
-          src={project.hero_image_url}
+          src={convertGoogleDriveUrl(project.hero_image_url)}
           alt={project.name}
           className="w-full h-full object-cover"
         />
@@ -219,7 +220,7 @@ export function ProjectDetail({ projectSlug, onNavigate }: ProjectDetailProps) {
                         >
                           <div className="aspect-[4/3] overflow-hidden bg-gray-100 relative">
                             <img
-                              src={image.image_url}
+                              src={convertGoogleDriveUrl(image.image_url)}
                               alt={image.caption || project.name}
                               className="w-full h-full object-cover"
                               onError={(e) => {
@@ -285,7 +286,7 @@ export function ProjectDetail({ projectSlug, onNavigate }: ProjectDetailProps) {
 
           <div className="max-w-7xl max-h-[90vh] px-6 md:px-12">
             <img
-              src={images[currentImageIndex].image_url}
+              src={convertGoogleDriveUrl(images[currentImageIndex].image_url)}
               alt={images[currentImageIndex].caption || project.name}
               className="max-w-full max-h-[90vh] object-contain"
             />

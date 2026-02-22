@@ -3,6 +3,7 @@ import { AnimatedSection } from '../components/AnimatedSection';
 import { ImageReveal } from '../components/ImageReveal';
 import { supabase } from '../lib/supabase';
 import { Project } from '../lib/types';
+import { convertGoogleDriveUrl } from '../lib/utils';
 
 interface ProjectsProps {
   onNavigate: (page: string, projectSlug?: string) => void;
@@ -95,7 +96,7 @@ export function Projects({ onNavigate }: ProjectsProps) {
                 >
                   <div className="aspect-[3/4] overflow-hidden mb-6 relative">
                     <img
-                      src={project.hero_image_url}
+                      src={convertGoogleDriveUrl(project.hero_image_url)}
                       alt={project.name}
                       className="w-full h-full object-cover"
                     />
