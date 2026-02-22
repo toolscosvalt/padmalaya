@@ -50,6 +50,7 @@ function App() {
   }
 
   function handleRouteChange() {
+    window.scrollTo({ top: 0, behavior: 'instant' });
     const hash = window.location.hash.slice(1) || '/';
     const [path, ...rest] = hash.split('/').filter(Boolean);
 
@@ -76,6 +77,7 @@ function App() {
     } else {
       window.location.hash = `#/${page === 'home' ? '' : page}`;
     }
+    window.scrollTo({ top: 0, behavior: 'instant' });
   };
 
   const renderPage = () => {
