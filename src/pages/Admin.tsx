@@ -45,8 +45,7 @@ export function Admin({ isAuthenticated, onAuthChange }: AdminProps) {
   async function handleSaveCeoImage(url: string) {
     const { error } = await supabase
       .from('site_settings')
-      .update({ value: url })
-      .eq('key', 'ceo_image');
+      .upsert({ key: 'ceo_image', value: url }, { onConflict: 'key' });
 
     if (error) {
       showMessage('error', 'Error updating CEO image: ' + error.message);
