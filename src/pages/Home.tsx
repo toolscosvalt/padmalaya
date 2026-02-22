@@ -69,8 +69,8 @@ export function Home({ onNavigate }: HomeProps) {
         .limit(3),
     ]);
 
-    if (heroResult.data) setHeroSettings(heroResult.data.value);
-    if (metricsResult.data) setMetricsSettings(metricsResult.data.value);
+    if (heroResult.data?.value) setHeroSettings(heroResult.data.value);
+    if (metricsResult.data?.value) setMetricsSettings(metricsResult.data.value);
     if (projectsResult.data) setFeaturedProjects(projectsResult.data);
   }
 
