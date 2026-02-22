@@ -1,11 +1,10 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { ArrowRight, Star } from 'lucide-react';
 import { AnimatedSection } from '../components/AnimatedSection';
 import { ImageReveal } from '../components/ImageReveal';
 import { supabase } from '../lib/supabase';
 import { HeroSettings, MetricsSettings, Project, CustomerReview } from '../lib/types';
 import { convertGoogleDriveUrl } from '../lib/utils';
-import { useIntersectionObserver } from '../hooks/useIntersectionObserver';
 
 interface HomeProps {
   onNavigate: (page: string, projectSlug?: string) => void;
@@ -22,46 +21,57 @@ export function Home({ onNavigate }: HomeProps) {
     families: 0,
   });
   const [hasAnimated, setHasAnimated] = useState(false);
-  const { ref: metricsRef, isVisible: isMetricsVisible } = useIntersectionObserver({ threshold: 0.3 });
+  const metricsRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     fetchData();
   }, []);
 
   useEffect(() => {
-    if (metricsSettings && isMetricsVisible && !hasAnimated) {
-      setHasAnimated(true);
-      const duration = 2000;
-      const steps = 60;
-      const interval = duration / steps;
+    if (!metricsSettings || hasAnimated) return;
 
-      const yearsIncrement = metricsSettings.years_of_experience / steps;
-      const projectsIncrement = metricsSettings.projects_completed / steps;
-      const familiesIncrement = metricsSettings.happy_families / steps;
+    const element = metricsRef.current;
+    if (!element) return;
 
-      let currentStep = 0;
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          observer.disconnect();
+          setHasAnimated(true);
+          const duration = 2000;
+          const steps = 60;
+          const intervalMs = duration / steps;
 
-      const timer = setInterval(() => {
-        currentStep++;
-        if (currentStep <= steps) {
-          setAnimatedMetrics({
-            years: Math.round(yearsIncrement * currentStep),
-            projects: Math.round(projectsIncrement * currentStep),
-            families: Math.round(familiesIncrement * currentStep),
-          });
-        } else {
-          clearInterval(timer);
-          setAnimatedMetrics({
-            years: metricsSettings.years_of_experience,
-            projects: metricsSettings.projects_completed,
-            families: metricsSettings.happy_families,
-          });
+          const yearsTarget = metricsSettings.years_of_experience;
+          const projectsTarget = metricsSettings.projects_completed;
+          const familiesTarget = metricsSettings.happy_families;
+
+          let currentStep = 0;
+          const timer = setInterval(() => {
+            currentStep++;
+            if (currentStep <= steps) {
+              setAnimatedMetrics({
+                years: Math.round((yearsTarget / steps) * currentStep),
+                projects: Math.round((projectsTarget / steps) * currentStep),
+                families: Math.round((familiesTarget / steps) * currentStep),
+              });
+            } else {
+              clearInterval(timer);
+              setAnimatedMetrics({
+                years: yearsTarget,
+                projects: projectsTarget,
+                families: familiesTarget,
+              });
+            }
+          }, intervalMs);
         }
-      }, interval);
+      },
+      { threshold: 0.2 }
+    );
 
-      return () => clearInterval(timer);
-    }
-  }, [metricsSettings, isMetricsVisible, hasAnimated]);
+    observer.observe(element);
+    return () => observer.disconnect();
+  }, [metricsSettings, hasAnimated]);
 
   async function fetchData() {
     const [heroResult, metricsResult, projectsResult, reviewsResult] = await Promise.all([
