@@ -1,7 +1,8 @@
 import { useEffect, useRef, useState } from 'react';
 import { supabase } from '../lib/supabase';
 import { Project, ProjectImage } from '../lib/types';
-import { Plus, Edit2, Trash2, Save, X, Lock, LogOut, Upload, User } from 'lucide-react';
+import { convertGoogleDriveUrl } from '../lib/utils';
+import { Plus, Edit2, Trash2, Save, X, Lock, LogOut, Upload, User, Link } from 'lucide-react';
 import { ReviewsManager } from '../components/ReviewsManager';
 import MetricsManager from '../components/MetricsManager';
 
@@ -22,6 +23,7 @@ export function Admin({ isAuthenticated, onAuthChange }: AdminProps) {
   const [loginPassword, setLoginPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [ceoImageUrl, setCeoImageUrl] = useState('');
+  const [ceoImageUrlInput, setCeoImageUrlInput] = useState('');
   const [ceoImageUploading, setCeoImageUploading] = useState(false);
   const ceoFileInputRef = useRef<HTMLInputElement>(null);
 
@@ -78,6 +80,25 @@ export function Admin({ isAuthenticated, onAuthChange }: AdminProps) {
     }
 
     setCeoImageUploading(false);
+  }
+
+  async function handleCeoImageUrlSave() {
+    if (!ceoImageUrlInput.trim()) return;
+
+    const converted = convertGoogleDriveUrl(ceoImageUrlInput.trim());
+
+    const { error } = await supabase
+      .from('site_settings')
+      .update({ value: converted, updated_at: new Date().toISOString() })
+      .eq('key', 'ceo_image');
+
+    if (error) {
+      showMessage('error', 'Error saving image URL: ' + error.message);
+    } else {
+      setCeoImageUrl(converted);
+      setCeoImageUrlInput('');
+      showMessage('success', 'CEO image URL saved successfully!');
+    }
   }
 
   async function handleLogin(e: React.FormEvent) {
@@ -381,7 +402,7 @@ export function Admin({ isAuthenticated, onAuthChange }: AdminProps) {
                   {ceoImageUrl ? (
                     <div className="flex flex-col items-center gap-3">
                       <img
-                        src={ceoImageUrl}
+                        src={convertGoogleDriveUrl(ceoImageUrl)}
                         alt="CEO"
                         className="w-32 h-40 object-cover rounded-lg"
                       />
@@ -424,6 +445,29 @@ export function Admin({ isAuthenticated, onAuthChange }: AdminProps) {
                   <Upload size={20} className="inline mr-2" />
                   {ceoImageUploading ? 'Uploading...' : 'Upload CEO Image'}
                 </button>
+
+                <div className="mt-4 border-t pt-4">
+                  <p className="text-sm font-medium text-[#2F6F6B] mb-2">Or paste a Google Drive share link</p>
+                  <div className="flex gap-2">
+                    <input
+                      type="text"
+                      value={ceoImageUrlInput}
+                      onChange={(e) => setCeoImageUrlInput(e.target.value)}
+                      placeholder="https://drive.google.com/file/d/..."
+                      className="flex-1 px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#2DB6E8]/30 focus:border-[#2DB6E8]"
+                    />
+                    <button
+                      type="button"
+                      onClick={handleCeoImageUrlSave}
+                      disabled={!ceoImageUrlInput.trim()}
+                      className="btn-primary disabled:opacity-50 disabled:cursor-not-allowed whitespace-nowrap"
+                    >
+                      <Link size={16} className="inline mr-1" />
+                      Save URL
+                    </button>
+                  </div>
+                  <p className="text-xs text-[#2F6F6B]/50 mt-1">Google Drive share links are automatically converted to display format</p>
+                </div>
               </div>
             </div>
           </div>
