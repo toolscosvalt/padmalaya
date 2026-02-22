@@ -54,18 +54,28 @@ export function About() {
         <div className="container-custom">
           <AnimatedSection className="text-center mb-16 md:mb-20">
             <h1 className="font-serif text-5xl md:text-6xl lg:text-7xl font-light mb-6">
-              {aboutSettings?.title || 'Four Decades of Building Trust'}
+              From Tirupati to Padmalaya: A Legacy Continued
             </h1>
-            <div className="w-24 h-px bg-[#D4A24C] mx-auto"></div>
+            <div className="w-24 h-px bg-[#D4A24C] mx-auto mb-8"></div>
+            <p className="text-xl md:text-2xl text-[#2F6F6B]/70 font-light">
+              The name has changed, but what we stand for hasn't.
+            </p>
           </AnimatedSection>
 
           <AnimatedSection delay={150}>
-            <div className="max-w-4xl mx-auto">
-              {aboutSettings?.content.split('\n\n').map((paragraph, index) => (
-                <p key={index} className="text-lg md:text-xl leading-relaxed mb-6 text-[#2F6F6B]/80">
-                  {paragraph}
-                </p>
-              ))}
+            <div className="max-w-4xl mx-auto space-y-6">
+              <p className="text-lg md:text-xl leading-relaxed text-[#2F6F6B]/80">
+                From Tirupati Developers to Padmalaya Group, everything that mattered continues exactly the same — our values, our commitment, and our belief in building with honesty, quality, and trust. Our roots remain deeply connected.
+              </p>
+              <p className="text-lg md:text-xl leading-relaxed text-[#2F6F6B]/80">
+                Tirupati Developers was inspired by Lord Venkatesh (Tirupati Balaji), and Padmalaya carries that same blessing forward. <span className="font-medium">Padma</span> meaning lotus, <span className="font-medium">Alaya</span> meaning home — inspired by Padmavati Devi, the goddess of prosperity and the divine partner of Lord Venkatesh.
+              </p>
+              <p className="text-lg md:text-xl leading-relaxed text-[#2F6F6B]/80">
+                Since 1982, we have been building more than structures. We create homes where families grow, businesses flourish, and communities thrive. Every project, from our first in 1982 to our ongoing developments, reflects our unwavering dedication to quality construction and timeless design.
+              </p>
+              <p className="text-lg md:text-xl leading-relaxed text-[#2F6F6B]/80">
+                We are, and will always be, a client-focused company that believes in creating meaningful, lasting spaces — not just buildings. The legacy of Tirupati lives on in Padmalaya: same values, same faith, same dedication.
+              </p>
             </div>
           </AnimatedSection>
         </div>
@@ -94,25 +104,23 @@ export function About() {
         </div>
       </AnimatedSection>
 
-      {aboutSettings && (
-        <AnimatedSection className="py-20 md:py-32 bg-[#F8FAFB]">
-          <div className="container-custom">
-            <div className="max-w-4xl mx-auto">
-              <div className="border-l-4 border-[#D4A24C] pl-8 md:pl-12">
-                <p className="text-xl md:text-2xl lg:text-3xl font-light text-[#2F6F6B] mb-6 leading-relaxed italic">
-                  {aboutSettings.ceo_message}
+      <AnimatedSection className="py-20 md:py-32 bg-[#F8FAFB]">
+        <div className="container-custom">
+          <div className="max-w-4xl mx-auto">
+            <div className="border-l-4 border-[#D4A24C] pl-8 md:pl-12">
+              <p className="text-xl md:text-2xl lg:text-3xl font-light text-[#2F6F6B] mb-6 leading-relaxed italic">
+                Real estate is not just about buildings — it is about creating spaces where families build their futures, where businesses grow, and where communities come together. Every project we undertake carries the weight of this responsibility. What began as Tirupati Developers over four decades ago continues today as Padmalaya Group, with the same principles that have always guided us: integrity, quality, and a deep respect for those who trust us with their dreams.
+              </p>
+              <div className="flex items-center space-x-4">
+                <div className="w-16 h-px bg-[#D4A24C]"></div>
+                <p className="text-base md:text-lg font-medium text-[#2F6F6B]">
+                  Mr. Rakesh Saraff
                 </p>
-                <div className="flex items-center space-x-4">
-                  <div className="w-16 h-px bg-[#D4A24C]"></div>
-                  <p className="text-base md:text-lg font-medium text-[#2F6F6B]">
-                    {aboutSettings.ceo_name}
-                  </p>
-                </div>
               </div>
             </div>
           </div>
-        </AnimatedSection>
-      )}
+        </div>
+      </AnimatedSection>
 
       <AnimatedSection className="py-20 md:py-32 bg-[#2F6F6B] text-white">
         <div className="container-custom text-center">
