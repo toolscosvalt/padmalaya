@@ -51,6 +51,15 @@ function App() {
 
   function handleRouteChange() {
     window.scrollTo({ top: 0, behavior: 'instant' });
+
+    const pathname = window.location.pathname;
+    if (pathname && pathname !== '/') {
+      const converted = pathname.replace(/^\//, '');
+      window.history.replaceState(null, '', '/');
+      window.location.hash = `#/${converted}`;
+      return;
+    }
+
     const hash = window.location.hash.slice(1) || '/';
     const [path, ...rest] = hash.split('/').filter(Boolean);
 
