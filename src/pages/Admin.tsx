@@ -42,44 +42,50 @@ export function Admin({ isAuthenticated, onAuthChange }: AdminProps) {
   }
 
   function convertGoogleDriveUrl(url: string): string {
+    // Convert Google Drive share link to direct view link
     const match = url.match(/\/d\/([a-zA-Z0-9_-]+)/);
     if (match) {
       const fileId = match[1];
-      return `https://lh3.googleusercontent.com/d/${fileId}`;
+      return `https://drive.google.com/uc?export=view&id=${fileId}`;
     }
     const idMatch = url.match(/[?&]id=([a-zA-Z0-9_-]+)/);
     if (idMatch) {
-      return `https://lh3.googleusercontent.com/d/${idMatch[1]}`;
+      return `https://drive.google.com/uc?export=view&id=${idMatch[1]}`;
     }
-    return url.replace(/\/\//g, '/').replace(':/', '://');
+    return url;
   }
 
   async function handleLogoFileUpload(file: File) {
     setUploadingLogo(true);
 
-    const fileExt = file.name.split('.').pop();
-    const fileName = `logo-${Date.now()}.${fileExt}`;
-    const filePath = fileName;
+    try {
+      const fileExt = file.name.split('.').pop();
+      const fileName = `logo-${Date.now()}.${fileExt}`;
+      const filePath = fileName;
 
-    const { error: uploadError } = await supabase.storage
-      .from('logos')
-      .upload(filePath, file, {
-        cacheControl: '3600',
-        upsert: true
-      });
+      const { error: uploadError } = await supabase.storage
+        .from('logos')
+        .upload(filePath, file, {
+          cacheControl: '3600',
+          upsert: true
+        });
 
-    if (uploadError) {
-      showMessage('error', 'Error uploading file: ' + uploadError.message);
+      if (uploadError) {
+        showMessage('error', 'Error uploading file: ' + uploadError.message);
+        setUploadingLogo(false);
+        return;
+      }
+
+      const { data: { publicUrl } } = supabase.storage
+        .from('logos')
+        .getPublicUrl(filePath);
+
+      await saveLogoUrl(publicUrl);
+    } catch (error) {
+      showMessage('error', 'Error uploading logo: ' + (error as Error).message);
+    } finally {
       setUploadingLogo(false);
-      return;
     }
-
-    const { data: { publicUrl } } = supabase.storage
-      .from('logos')
-      .getPublicUrl(filePath);
-
-    await saveLogoUrl(publicUrl);
-    setUploadingLogo(false);
   }
 
   async function saveLogoUrl(url: string) {
