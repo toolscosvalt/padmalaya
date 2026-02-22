@@ -52,8 +52,11 @@ export function Navigation({ currentPage, onNavigate }: NavigationProps) {
       .maybeSingle();
 
     if (data?.value) {
+      console.log('Logo URL from database:', data.value);
       setLogoUrl(data.value);
       setLogoError(false);
+    } else {
+      console.log('No logo URL found in database');
     }
   }
 
@@ -86,8 +89,10 @@ export function Navigation({ currentPage, onNavigate }: NavigationProps) {
               src={logoUrl}
               alt="Padmalaya Group"
               className="h-10 md:h-12 w-auto object-contain"
-              onError={() => setLogoError(true)}
-              crossOrigin="anonymous"
+              onError={(e) => {
+                console.error('Logo failed to load:', logoUrl, e);
+                setLogoError(true);
+              }}
             />
           ) : (
             <span className="font-serif text-xl md:text-2xl font-medium text-[#2F6F6B] tracking-wide">
