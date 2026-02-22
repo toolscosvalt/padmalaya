@@ -46,7 +46,7 @@ export function Admin({ isAuthenticated, onAuthChange }: AdminProps) {
       const fileId = match[1];
       return `https://drive.google.com/uc?export=view&id=${fileId}`;
     }
-    return url;
+    return url.replace(/\/\//g, '/').replace(':/', '://');
   }
 
   async function handleSaveLogo(e: React.FormEvent) {
