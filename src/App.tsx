@@ -7,6 +7,7 @@ import { Projects } from './pages/Projects';
 import { ProjectDetail } from './pages/ProjectDetail';
 import { Contact } from './pages/Contact';
 import { Admin } from './pages/Admin';
+import { NotFound } from './pages/NotFound';
 import { supabase } from './lib/supabase';
 import { ContactSettings } from './lib/types';
 
@@ -52,14 +53,19 @@ function App() {
     const hash = window.location.hash.slice(1) || '/';
     const [path, ...rest] = hash.split('/').filter(Boolean);
 
+    const validPages = ['home', 'about', 'projects', 'contact', 'admin', 'project'];
+
     if (!path || path === '') {
       setCurrentPage('home');
       setProjectSlug(null);
     } else if (path === 'project' && rest[0]) {
       setCurrentPage('project');
       setProjectSlug(rest[0]);
-    } else {
+    } else if (validPages.includes(path)) {
       setCurrentPage(path);
+      setProjectSlug(null);
+    } else {
+      setCurrentPage('404');
       setProjectSlug(null);
     }
   }
@@ -90,8 +96,10 @@ function App() {
         return <Contact />;
       case 'admin':
         return <Admin isAuthenticated={isAdminAuthenticated} onAuthChange={checkAdminAuth} />;
+      case '404':
+        return <NotFound onNavigate={handleNavigate} />;
       default:
-        return <Home onNavigate={handleNavigate} />;
+        return <NotFound onNavigate={handleNavigate} />;
     }
   };
 
