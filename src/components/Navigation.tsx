@@ -79,16 +79,17 @@ export function Navigation({ currentPage, onNavigate }: NavigationProps) {
           onClick={() => handleNavigation('home')}
           className="flex items-center space-x-3"
         >
-          {logoUrl && (
+          {logoUrl ? (
             <img
               src={logoUrl}
               alt="Padmalaya Group"
               className="h-10 md:h-12 w-auto"
             />
+          ) : (
+            <span className="font-serif text-xl md:text-2xl font-medium text-[#2F6F6B] tracking-wide">
+              PADMALAYA
+            </span>
           )}
-          <span className="font-serif text-xl md:text-2xl font-medium text-[#2F6F6B] tracking-wide">
-            PADMALAYA
-          </span>
         </button>
 
         <div className="hidden md:flex items-center space-x-10">
