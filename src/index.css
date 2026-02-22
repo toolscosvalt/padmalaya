@@ -1,0 +1,154 @@
+@import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;500;600&family=Inter:wght@300;400;500;600&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --color-off-white: #F8FAFB;
+    --color-sky-blue: #2DB6E8;
+    --color-deep-teal: #2F6F6B;
+    --color-gold: #D4A24C;
+  }
+
+  * {
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  html {
+    scroll-behavior: smooth;
+  }
+
+  body {
+    @apply bg-[#F8FAFB] text-[#2F6F6B] font-sans;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    @apply font-serif text-[#2F6F6B];
+    line-height: 1.2;
+  }
+
+  h1 {
+    @apply text-5xl md:text-6xl lg:text-7xl font-light;
+  }
+
+  h2 {
+    @apply text-4xl md:text-5xl lg:text-6xl font-light;
+  }
+
+  h3 {
+    @apply text-3xl md:text-4xl font-light;
+  }
+
+  h4 {
+    @apply text-2xl md:text-3xl font-normal;
+  }
+
+  p {
+    @apply text-base md:text-lg leading-relaxed;
+  }
+}
+
+@layer components {
+  .container-custom {
+    @apply max-w-7xl mx-auto px-6 md:px-8 lg:px-12;
+  }
+
+  .btn-primary {
+    @apply inline-block px-8 py-4 bg-[#2DB6E8] text-white font-medium tracking-wide transition-all duration-300 ease-out hover:bg-[#2F6F6B] hover:shadow-lg;
+  }
+
+  .btn-secondary {
+    @apply inline-block px-8 py-4 border-2 border-[#2F6F6B] text-[#2F6F6B] font-medium tracking-wide transition-all duration-300 ease-out hover:bg-[#2F6F6B] hover:text-white;
+  }
+
+  .gold-accent {
+    @apply h-px bg-[#D4A24C];
+  }
+
+  .fade-in {
+    animation: fadeInUp 0.8s ease-out forwards;
+    opacity: 0;
+  }
+
+  .fade-in-delay-1 {
+    animation: fadeInUp 0.8s ease-out 0.15s forwards;
+    opacity: 0;
+  }
+
+  .fade-in-delay-2 {
+    animation: fadeInUp 0.8s ease-out 0.3s forwards;
+    opacity: 0;
+  }
+
+  .slide-in-left {
+    animation: slideInLeft 0.6s ease-out forwards;
+  }
+}
+
+@layer utilities {
+  .font-serif {
+    font-family: 'Cormorant Garamond', serif;
+  }
+
+  .font-sans {
+    font-family: 'Inter', sans-serif;
+  }
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes slideInLeft {
+  from {
+    width: 0;
+  }
+  to {
+    width: 100%;
+  }
+}
+
+.image-reveal {
+  opacity: 0;
+  transform: translateY(20px);
+  transition: opacity 0.7s ease-out, transform 0.7s ease-out;
+}
+
+.image-reveal.visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.image-hover {
+  overflow: hidden;
+  position: relative;
+}
+
+.image-hover img {
+  transition: transform 0.4s ease-out;
+}
+
+.image-hover:hover img {
+  transform: scale(1.03);
+}
+
+.image-hover .overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0);
+  transition: background 0.4s ease-out;
+}
+
+.image-hover:hover .overlay {
+  background: rgba(0, 0, 0, 0.08);
+}
