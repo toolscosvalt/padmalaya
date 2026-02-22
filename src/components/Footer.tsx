@@ -23,10 +23,7 @@ export function Footer({ contactInfo }: FooterProps) {
       .maybeSingle();
 
     if (data?.value) {
-      console.log('Footer Logo URL from database:', data.value);
       setLogoUrl(data.value);
-    } else {
-      console.log('Footer: No logo URL found in database');
     }
   }
 

@@ -69,12 +69,8 @@ export function Home({ onNavigate }: HomeProps) {
         .limit(3),
     ]);
 
-    console.log('Hero data:', heroResult.data);
-    console.log('Metrics data:', metricsResult.data);
-    console.log('Projects data:', projectsResult.data);
-
-    if (heroResult.data) setHeroSettings(heroResult.data.value);
-    if (metricsResult.data) setMetricsSettings(metricsResult.data.value);
+    if (heroResult.data?.value) setHeroSettings(heroResult.data.value);
+    if (metricsResult.data?.value) setMetricsSettings(metricsResult.data.value);
     if (projectsResult.data) setFeaturedProjects(projectsResult.data);
   }
 
