@@ -15,9 +15,9 @@ export function Footer({ contactInfo }: FooterProps) {
           <div>
             <div className="mb-4">
               <img
-                src="/logo-new.png"
+                src="/logo-padmalaya.png"
                 alt="Padmalaya Group"
-                className="h-14 md:h-16 w-auto brightness-0 invert"
+                className="h-14 md:h-16 w-auto object-contain brightness-0 invert"
               />
             </div>
             <p className="text-[#F8FAFB]/80 leading-relaxed text-sm md:text-base">
