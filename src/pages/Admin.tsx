@@ -18,24 +18,73 @@ export function Admin({ isAuthenticated, onAuthChange }: AdminProps) {
   const [loginEmail, setLoginEmail] = useState('');
   const [loginPassword, setLoginPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [logoUrl, setLogoUrl] = useState('');
+  const [showLogoForm, setShowLogoForm] = useState(false);
 
   useEffect(() => {
     if (isAuthenticated) {
       fetchProjects();
+      fetchLogoUrl();
     }
   }, [isAuthenticated]);
+
+  async function fetchLogoUrl() {
+    const { data } = await supabase
+      .from('site_settings')
+      .select('value')
+      .eq('key', 'logo_url')
+      .maybeSingle();
+
+    if (data?.value) {
+      setLogoUrl(data.value);
+    }
+  }
 
   function convertGoogleDriveUrl(url: string): string {
     const match = url.match(/\/d\/([a-zA-Z0-9_-]+)/);
     if (match) {
       const fileId = match[1];
-      return `https://drive.google.com/uc?export=view&id=${fileId}`;
+      return `https://lh3.googleusercontent.com/d/${fileId}`;
     }
     const idMatch = url.match(/[?&]id=([a-zA-Z0-9_-]+)/);
     if (idMatch) {
-      return `https://drive.google.com/uc?export=view&id=${idMatch[1]}`;
+      return `https://lh3.googleusercontent.com/d/${idMatch[1]}`;
     }
-    return url;
+    return url.replace(/\/\//g, '/').replace(':/', '://');
+  }
+
+  async function handleSaveLogo(e: React.FormEvent) {
+    e.preventDefault();
+    const formData = new FormData(e.currentTarget as HTMLFormElement);
+    const inputUrl = formData.get('logo_url') as string;
+    const newLogoUrl = convertGoogleDriveUrl(inputUrl);
+
+    // Always try to update first since the row likely exists
+    const updateResult = await supabase
+      .from('site_settings')
+      .update({ value: newLogoUrl })
+      .eq('key', 'logo_url');
+
+    // If update affected no rows, then insert
+    if (updateResult.error && updateResult.error.code === 'PGRST116') {
+      const insertResult = await supabase
+        .from('site_settings')
+        .insert({ key: 'logo_url', value: newLogoUrl });
+
+      if (insertResult.error) {
+        console.error('Logo insert error:', insertResult.error);
+        showMessage('error', 'Error updating logo: ' + insertResult.error.message);
+        return;
+      }
+    } else if (updateResult.error) {
+      console.error('Logo update error:', updateResult.error);
+      showMessage('error', 'Error updating logo: ' + updateResult.error.message);
+      return;
+    }
+
+    showMessage('success', 'Logo updated successfully!');
+    setShowLogoForm(false);
+    fetchLogoUrl();
   }
 
   async function handleLogin(e: React.FormEvent) {
@@ -270,7 +319,7 @@ export function Admin({ isAuthenticated, onAuthChange }: AdminProps) {
           </div>
         )}
 
-        <div className="mb-8">
+        <div className="mb-8 flex flex-wrap gap-4">
           <button
             onClick={() => {
               setEditingProject(null);
@@ -281,7 +330,21 @@ export function Admin({ isAuthenticated, onAuthChange }: AdminProps) {
             <Plus size={20} />
             <span>Add New Project</span>
           </button>
+          <button
+            onClick={() => setShowLogoForm(true)}
+            className="btn-secondary inline-flex items-center space-x-2"
+          >
+            <Edit2 size={20} />
+            <span>Update Logo</span>
+          </button>
         </div>
+
+        {logoUrl && (
+          <div className="mb-8 p-4 bg-gray-50 rounded-lg inline-block">
+            <p className="text-sm text-[#2F6F6B]/60 mb-2">Current Logo:</p>
+            <img src={logoUrl} alt="Site Logo" className="h-12 w-auto" />
+          </div>
+        )}
 
         {showProjectForm && (
           <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4 overflow-y-auto">
@@ -459,6 +522,53 @@ export function Admin({ isAuthenticated, onAuthChange }: AdminProps) {
                       setShowProjectForm(false);
                       setEditingProject(null);
                     }}
+                    className="btn-secondary flex-1"
+                  >
+                    Cancel
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        )}
+
+        {showLogoForm && (
+          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+            <div className="bg-white rounded-lg p-6 md:p-8 max-w-xl w-full">
+              <div className="flex justify-between items-center mb-6">
+                <h2 className="font-serif text-2xl font-light">Update Logo</h2>
+                <button
+                  onClick={() => setShowLogoForm(false)}
+                  className="text-[#2F6F6B] hover:text-[#2DB6E8]"
+                >
+                  <X size={24} />
+                </button>
+              </div>
+
+              <form onSubmit={handleSaveLogo} className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium mb-1">Logo URL *</label>
+                  <input
+                    type="url"
+                    name="logo_url"
+                    defaultValue={logoUrl}
+                    required
+                    placeholder="https://example.com/logo.svg"
+                    className="w-full px-4 py-2 border border-gray-300 rounded"
+                  />
+                  <p className="text-xs text-gray-500 mt-1">
+                    Recommended: SVG or PNG format, transparent background
+                  </p>
+                </div>
+
+                <div className="flex space-x-4 pt-4">
+                  <button type="submit" className="btn-primary flex-1">
+                    <Save size={20} className="inline mr-2" />
+                    Update Logo
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setShowLogoForm(false)}
                     className="btn-secondary flex-1"
                   >
                     Cancel
