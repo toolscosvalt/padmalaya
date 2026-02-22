@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { supabase } from '../lib/supabase';
 import { Project, ProjectImage } from '../lib/types';
 import { Plus, Edit2, Trash2, Save, X, Lock, LogOut } from 'lucide-react';
+import { ReviewsManager } from '../components/ReviewsManager';
 
 interface AdminProps {
   isAuthenticated: boolean;
@@ -9,6 +10,7 @@ interface AdminProps {
 }
 
 export function Admin({ isAuthenticated, onAuthChange }: AdminProps) {
+  const [activeTab, setActiveTab] = useState<'projects' | 'reviews'>('projects');
   const [projects, setProjects] = useState<Project[]>([]);
   const [editingProject, setEditingProject] = useState<Project | null>(null);
   const [showProjectForm, setShowProjectForm] = useState(false);
@@ -248,7 +250,7 @@ export function Admin({ isAuthenticated, onAuthChange }: AdminProps) {
           <div className="flex justify-between items-center">
             <div>
               <h1 className="font-serif text-4xl md:text-5xl font-light mb-4">Admin Panel</h1>
-              <p className="text-lg text-[#2F6F6B]/70">Manage projects and images</p>
+              <p className="text-lg text-[#2F6F6B]/70">Manage projects, reviews, and content</p>
             </div>
             <button
               onClick={handleLogout}
@@ -270,18 +272,47 @@ export function Admin({ isAuthenticated, onAuthChange }: AdminProps) {
           </div>
         )}
 
-        <div className="mb-8">
-          <button
-            onClick={() => {
-              setEditingProject(null);
-              setShowProjectForm(true);
-            }}
-            className="btn-primary inline-flex items-center space-x-2"
-          >
-            <Plus size={20} />
-            <span>Add New Project</span>
-          </button>
+        <div className="mb-8 border-b border-gray-200">
+          <div className="flex space-x-8">
+            <button
+              onClick={() => setActiveTab('projects')}
+              className={`pb-4 px-2 font-medium transition-colors ${
+                activeTab === 'projects'
+                  ? 'text-[#2DB6E8] border-b-2 border-[#2DB6E8]'
+                  : 'text-[#2F6F6B]/60 hover:text-[#2F6F6B]'
+              }`}
+            >
+              Projects
+            </button>
+            <button
+              onClick={() => setActiveTab('reviews')}
+              className={`pb-4 px-2 font-medium transition-colors ${
+                activeTab === 'reviews'
+                  ? 'text-[#2DB6E8] border-b-2 border-[#2DB6E8]'
+                  : 'text-[#2F6F6B]/60 hover:text-[#2F6F6B]'
+              }`}
+            >
+              Customer Reviews
+            </button>
+          </div>
         </div>
+
+        {activeTab === 'reviews' ? (
+          <ReviewsManager onMessage={showMessage} />
+        ) : (
+          <>
+            <div className="mb-8">
+              <button
+                onClick={() => {
+                  setEditingProject(null);
+                  setShowProjectForm(true);
+                }}
+                className="btn-primary inline-flex items-center space-x-2"
+              >
+                <Plus size={20} />
+                <span>Add New Project</span>
+              </button>
+            </div>
 
         {showProjectForm && (
           <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4 overflow-y-auto">
@@ -635,6 +666,8 @@ export function Admin({ isAuthenticated, onAuthChange }: AdminProps) {
             </div>
           ))}
         </div>
+          </>
+        )}
       </div>
     </div>
   );

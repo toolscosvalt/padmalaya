@@ -54,7 +54,7 @@ export function About() {
         <div className="container-custom">
           <AnimatedSection className="text-center mb-16 md:mb-20">
             <h1 className="font-serif text-5xl md:text-6xl lg:text-7xl font-light mb-6">
-              {aboutSettings?.title || 'Three Decades of Building Trust'}
+              {aboutSettings?.title || 'Four Decades of Building Trust'}
             </h1>
             <div className="w-24 h-px bg-[#D4A24C] mx-auto"></div>
           </AnimatedSection>
@@ -120,7 +120,7 @@ export function About() {
             Building the Future, Honoring the Past
           </h2>
           <p className="text-lg md:text-xl text-white/80 max-w-3xl mx-auto leading-relaxed">
-            Every project we undertake carries forward three decades of experience, trust, and
+            Every project we undertake carries forward four decades of experience, trust, and
             commitment to excellence.
           </p>
         </div>

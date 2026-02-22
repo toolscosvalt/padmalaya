@@ -1,9 +1,9 @@
 import { useEffect, useState } from 'react';
-import { ArrowRight } from 'lucide-react';
+import { ArrowRight, Star } from 'lucide-react';
 import { AnimatedSection } from '../components/AnimatedSection';
 import { ImageReveal } from '../components/ImageReveal';
 import { supabase } from '../lib/supabase';
-import { HeroSettings, MetricsSettings, Project } from '../lib/types';
+import { HeroSettings, MetricsSettings, Project, CustomerReview } from '../lib/types';
 
 interface HomeProps {
   onNavigate: (page: string, projectSlug?: string) => void;
@@ -13,6 +13,7 @@ export function Home({ onNavigate }: HomeProps) {
   const [heroSettings, setHeroSettings] = useState<HeroSettings | null>(null);
   const [metricsSettings, setMetricsSettings] = useState<MetricsSettings | null>(null);
   const [featuredProjects, setFeaturedProjects] = useState<Project[]>([]);
+  const [customerReviews, setCustomerReviews] = useState<CustomerReview[]>([]);
   const [animatedMetrics, setAnimatedMetrics] = useState({
     years: 0,
     projects: 0,
@@ -58,7 +59,7 @@ export function Home({ onNavigate }: HomeProps) {
   }, [metricsSettings]);
 
   async function fetchData() {
-    const [heroResult, metricsResult, projectsResult] = await Promise.all([
+    const [heroResult, metricsResult, projectsResult, reviewsResult] = await Promise.all([
       supabase.from('site_settings').select('value').eq('key', 'hero').maybeSingle(),
       supabase.from('site_settings').select('value').eq('key', 'metrics').maybeSingle(),
       supabase
@@ -67,11 +68,17 @@ export function Home({ onNavigate }: HomeProps) {
         .eq('is_featured', true)
         .order('display_order', { ascending: true })
         .limit(3),
+      supabase
+        .from('customer_reviews')
+        .select('*')
+        .eq('is_featured', true)
+        .order('display_order', { ascending: true }),
     ]);
 
     if (heroResult.data?.value) setHeroSettings(heroResult.data.value);
     if (metricsResult.data?.value) setMetricsSettings(metricsResult.data.value);
     if (projectsResult.data) setFeaturedProjects(projectsResult.data);
+    if (reviewsResult.data) setCustomerReviews(reviewsResult.data);
   }
 
   return (
@@ -95,7 +102,7 @@ export function Home({ onNavigate }: HomeProps) {
           </div>
           <div className="fade-in-delay-1">
             <p className="text-lg md:text-xl lg:text-2xl mb-8 text-white/90 max-w-3xl mx-auto font-light">
-              {heroSettings?.subheadline || 'Building legacies of trust and quality since 1995'}
+              {heroSettings?.subheadline || 'Building legacies of trust and quality since 1985'}
             </p>
           </div>
           <div className="fade-in-delay-2">
@@ -216,13 +223,59 @@ export function Home({ onNavigate }: HomeProps) {
         </AnimatedSection>
       )}
 
+      {customerReviews.length > 0 && (
+        <AnimatedSection className="py-20 md:py-32 bg-white">
+          <div className="container-custom">
+            <div className="text-center mb-16">
+              <h2 className="font-serif text-4xl md:text-5xl lg:text-6xl font-light mb-4">
+                What Our Customers Say
+              </h2>
+              <div className="w-24 h-px bg-[#D4A24C] mx-auto"></div>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-8 md:gap-12">
+              {customerReviews.map((review, index) => (
+                <AnimatedSection key={review.id} delay={index * 100}>
+                  <div className="bg-[#F8FAFB] p-8 md:p-10 rounded-sm h-full flex flex-col">
+                    {review.rating && (
+                      <div className="flex items-center space-x-1 mb-4">
+                        {[...Array(5)].map((_, i) => (
+                          <Star
+                            key={i}
+                            size={18}
+                            className={
+                              i < review.rating!
+                                ? 'fill-[#D4A24C] text-[#D4A24C]'
+                                : 'text-gray-300'
+                            }
+                          />
+                        ))}
+                      </div>
+                    )}
+                    <p className="text-base md:text-lg text-[#2F6F6B]/80 leading-relaxed mb-6 flex-grow italic">
+                      "{review.review_text}"
+                    </p>
+                    <div className="flex items-center space-x-3">
+                      <div className="w-12 h-px bg-[#D4A24C]"></div>
+                      <p className="text-sm md:text-base font-medium text-[#2F6F6B]">
+                        {review.customer_name}
+                      </p>
+                    </div>
+                  </div>
+                </AnimatedSection>
+              ))}
+            </div>
+          </div>
+        </AnimatedSection>
+      )}
+
       <AnimatedSection className="py-20 md:py-32 bg-[#2F6F6B] text-white">
         <div className="container-custom text-center">
           <h2 className="font-serif text-4xl md:text-5xl lg:text-6xl font-light mb-6 text-white">
             Building Trust, One Home at a Time
           </h2>
           <p className="text-lg md:text-xl text-white/80 max-w-3xl mx-auto mb-10 leading-relaxed">
-            For three decades, we have been creating spaces where families grow, memories are made,
+            For four decades, we have been creating spaces where families grow, memories are made,
             and legacies are built.
           </p>
           <button
