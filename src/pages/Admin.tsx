@@ -36,8 +36,7 @@ export function Admin({ isAuthenticated, onAuthChange }: AdminProps) {
       .maybeSingle();
 
     if (data?.value) {
-      const logoValue = typeof data.value === 'string' ? JSON.parse(data.value) : data.value;
-      setLogoUrl(logoValue);
+      setLogoUrl(data.value);
     }
   }
 
@@ -49,14 +48,14 @@ export function Admin({ isAuthenticated, onAuthChange }: AdminProps) {
     // Always try to update first since the row likely exists
     const updateResult = await supabase
       .from('site_settings')
-      .update({ value: JSON.stringify(newLogoUrl) })
+      .update({ value: newLogoUrl })
       .eq('key', 'logo_url');
 
     // If update affected no rows, then insert
     if (updateResult.error && updateResult.error.code === 'PGRST116') {
       const insertResult = await supabase
         .from('site_settings')
-        .insert({ key: 'logo_url', value: JSON.stringify(newLogoUrl) });
+        .insert({ key: 'logo_url', value: newLogoUrl });
 
       if (insertResult.error) {
         console.error('Logo insert error:', insertResult.error);

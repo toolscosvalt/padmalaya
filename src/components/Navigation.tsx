@@ -51,8 +51,7 @@ export function Navigation({ currentPage, onNavigate }: NavigationProps) {
       .maybeSingle();
 
     if (data?.value) {
-      const logoValue = typeof data.value === 'string' ? JSON.parse(data.value) : data.value;
-      setLogoUrl(logoValue);
+      setLogoUrl(data.value);
     }
   }
 
