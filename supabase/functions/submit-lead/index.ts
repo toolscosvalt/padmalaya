@@ -13,6 +13,11 @@ const EMAIL_REGEX = /^[A-Za-z0-9._%+\-]+@[A-Za-z0-9.\-]+\.[A-Za-z]{2,}$/;
 const PHONE_CLEAN_REGEX = /[\s\-().+]/g;
 const PHONE_DIGITS_REGEX = /^[0-9]{7,15}$/;
 
+const RATE_LIMIT_EMAIL_MAX = 3;
+const RATE_LIMIT_EMAIL_WINDOW_HOURS = 24;
+const RATE_LIMIT_IP_MAX = 5;
+const RATE_LIMIT_IP_WINDOW_HOURS = 1;
+
 interface LeadPayload {
   name: string;
   email: string;
@@ -66,17 +71,71 @@ function validatePayload(data: LeadPayload): ValidationError[] {
   return errors;
 }
 
+function getClientIp(req: Request): string | null {
+  return (
+    req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ||
+    req.headers.get("x-real-ip") ||
+    null
+  );
+}
+
+async function checkRateLimit(
+  supabase: ReturnType<typeof createClient>,
+  email: string,
+  ip: string | null
+): Promise<{ limited: boolean; reason: string }> {
+  const emailWindowStart = new Date(
+    Date.now() - RATE_LIMIT_EMAIL_WINDOW_HOURS * 60 * 60 * 1000
+  ).toISOString();
+
+  const { count: emailCount } = await supabase
+    .from("leads")
+    .select("id", { count: "exact", head: true })
+    .eq("email", email.toLowerCase())
+    .gte("created_at", emailWindowStart);
+
+  if ((emailCount ?? 0) >= RATE_LIMIT_EMAIL_MAX) {
+    return {
+      limited: true,
+      reason: `You have already submitted ${RATE_LIMIT_EMAIL_MAX} enquiries in the last ${RATE_LIMIT_EMAIL_WINDOW_HOURS} hours. Please try again later or contact us directly.`,
+    };
+  }
+
+  if (ip) {
+    const ipWindowStart = new Date(
+      Date.now() - RATE_LIMIT_IP_WINDOW_HOURS * 60 * 60 * 1000
+    ).toISOString();
+
+    const { count: ipCount } = await supabase
+      .from("leads")
+      .select("id", { count: "exact", head: true })
+      .eq("source_ip", ip)
+      .gte("created_at", ipWindowStart);
+
+    if ((ipCount ?? 0) >= RATE_LIMIT_IP_MAX) {
+      return {
+        limited: true,
+        reason: `Too many submissions from your connection. Please wait an hour before trying again.`,
+      };
+    }
+  }
+
+  return { limited: false, reason: "" };
+}
+
 async function syncToGoogleSheets(lead: Record<string, unknown>, webhookUrl: string): Promise<void> {
   await fetch(webhookUrl, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
+      id: lead.id,
       name: lead.name,
       email: lead.email,
       phone: lead.phone,
       preferred_contact_time: lead.preferred_contact_time,
       interest: lead.interest,
       message: lead.message ?? "",
+      status: lead.status,
       submitted_at: lead.created_at,
     }),
   });
@@ -118,14 +177,26 @@ Deno.serve(async (req: Request) => {
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
     );
 
+    const clientIp = getClientIp(req);
+    const normalizedEmail = body.email.trim().toLowerCase();
+
+    const rateLimit = await checkRateLimit(supabase, normalizedEmail, clientIp);
+    if (rateLimit.limited) {
+      return new Response(
+        JSON.stringify({ error: rateLimit.reason }),
+        { status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
     const insertData = {
       name: body.name.trim(),
-      email: body.email.trim().toLowerCase(),
+      email: normalizedEmail,
       phone: body.phone.trim(),
       preferred_contact_time: body.preferred_contact_time,
       interest: body.interest,
       message: body.message?.trim() || null,
       status: "new",
+      source_ip: clientIp,
     };
 
     const { data: lead, error: insertError } = await supabase

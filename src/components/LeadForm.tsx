@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { User, Mail, Phone, Clock, Building2, MessageSquare, CheckCircle, AlertCircle, Loader } from 'lucide-react';
 
 interface LeadFormData {
@@ -96,6 +96,27 @@ export function LeadForm({ onSubmitSuccess }: LeadFormProps) {
   const [fieldErrors, setFieldErrors] = useState<FieldErrors>({});
   const [submitStatus, setSubmitStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
   const [errorMessage, setErrorMessage] = useState('');
+  const [cooldownSeconds, setCooldownSeconds] = useState(0);
+  const cooldownTimer = useRef<ReturnType<typeof setInterval> | null>(null);
+
+  useEffect(() => {
+    return () => {
+      if (cooldownTimer.current) clearInterval(cooldownTimer.current);
+    };
+  }, []);
+
+  function startCooldown(seconds: number) {
+    setCooldownSeconds(seconds);
+    cooldownTimer.current = setInterval(() => {
+      setCooldownSeconds((prev) => {
+        if (prev <= 1) {
+          clearInterval(cooldownTimer.current!);
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+  }
 
   function handleChange(e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) {
     const { name, value } = e.target;
@@ -107,6 +128,8 @@ export function LeadForm({ onSubmitSuccess }: LeadFormProps) {
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
+    if (cooldownSeconds > 0) return;
+
     const errors = validateForm(formData);
     if (Object.keys(errors).length > 0) {
       setFieldErrors(errors);
@@ -146,6 +169,7 @@ export function LeadForm({ onSubmitSuccess }: LeadFormProps) {
       setSubmitStatus('success');
       setFormData({ name: '', email: '', phone: '', preferred_contact_time: '', interest: '', message: '' });
       setFieldErrors({});
+      startCooldown(60);
       onSubmitSuccess?.();
     } catch (err) {
       setSubmitStatus('error');
@@ -163,12 +187,18 @@ export function LeadForm({ onSubmitSuccess }: LeadFormProps) {
         <p className="text-[#2F6F6B]/70 leading-relaxed mb-6 max-w-sm">
           Your enquiry has been received. Our team will reach out to you at your preferred contact time.
         </p>
-        <button
-          onClick={() => setSubmitStatus('idle')}
-          className="text-sm text-[#2DB6E8] hover:text-[#2F6F6B] transition-colors underline underline-offset-2"
-        >
-          Submit another enquiry
-        </button>
+        {cooldownSeconds > 0 ? (
+          <p className="text-sm text-[#2F6F6B]/50">
+            You can submit again in {cooldownSeconds}s
+          </p>
+        ) : (
+          <button
+            onClick={() => setSubmitStatus('idle')}
+            className="text-sm text-[#2DB6E8] hover:text-[#2F6F6B] transition-colors underline underline-offset-2"
+          >
+            Submit another enquiry
+          </button>
+        )}
       </div>
     );
   }
@@ -363,7 +393,7 @@ export function LeadForm({ onSubmitSuccess }: LeadFormProps) {
 
       <button
         type="submit"
-        disabled={submitStatus === 'loading'}
+        disabled={submitStatus === 'loading' || cooldownSeconds > 0}
         className="w-full btn-primary py-3.5 font-medium flex items-center justify-center gap-2 disabled:opacity-60 disabled:cursor-not-allowed"
       >
         {submitStatus === 'loading' ? (
@@ -371,6 +401,8 @@ export function LeadForm({ onSubmitSuccess }: LeadFormProps) {
             <Loader size={18} className="animate-spin" />
             Submitting...
           </>
+        ) : cooldownSeconds > 0 ? (
+          `Please wait ${cooldownSeconds}s before submitting again`
         ) : (
           'Send Enquiry'
         )}
