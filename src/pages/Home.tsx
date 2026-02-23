@@ -192,13 +192,7 @@ export function Home({ onNavigate }: HomeProps) {
               {featuredProjects.map((project, index) => (
                 <ImageReveal key={project.id}>
                   <button
-                    onClick={() => {
-                      if (project.status === 'ongoing' && project.external_url) {
-                        window.open(project.external_url, '_blank');
-                      } else {
-                        onNavigate('project', project.slug);
-                      }
-                    }}
+                    onClick={() => onNavigate('project', project.slug)}
                     className="image-hover group block w-full text-left"
                   >
                     <div className="aspect-[3/4] overflow-hidden mb-6">

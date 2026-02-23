@@ -24,7 +24,7 @@ export function Footer({ contactInfo }: FooterProps) {
               </span>
             </div>
             <p className="text-[#F8FAFB]/80 leading-relaxed text-sm md:text-base">
-              Building legacies of trust and quality since 1985. Creating spaces where families build their futures.
+              Building legacies of trust and quality since 1982. Creating spaces where families build their futures.
             </p>
           </div>
 

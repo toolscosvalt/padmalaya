@@ -195,7 +195,7 @@ export function About() {
                     <div className="w-16 h-px bg-[#D4A24C]"></div>
                     <div>
                       <p className="text-base md:text-lg font-medium text-[#2F6F6B]">
-                        Mr. Veer Saraf
+                        Mr. Veer Saraff
                       </p>
                       <p className="text-sm md:text-base text-[#2F6F6B]/60">
                         Managing Director
@@ -209,7 +209,7 @@ export function About() {
                   {mdImage ? (
                     <img
                       src={mdImage}
-                      alt="Mr. Veer Saraf - Managing Director"
+                      alt="Mr. Veer Saraff - Managing Director"
                       className="w-full h-full object-cover"
                     />
                   ) : (

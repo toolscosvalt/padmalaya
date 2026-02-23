@@ -179,6 +179,21 @@ export function ProjectDetail({ projectSlug, onNavigate }: ProjectDetailProps) {
                   {paragraph}
                 </p>
               ))}
+              {project.external_url && (
+                <div className="mt-8 pt-6 border-t border-[#D4A24C]/30">
+                  <p className="text-lg text-[#2F6F6B]/80">
+                    For more details,{' '}
+                    <a
+                      href={project.external_url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-[#2DB6E8] hover:text-[#2F6F6B] underline font-medium transition-colors duration-200"
+                    >
+                      visit this link
+                    </a>
+                  </p>
+                </div>
+              )}
             </div>
           </div>
         </AnimatedSection>

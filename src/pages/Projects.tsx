@@ -32,11 +32,7 @@ export function Projects({ onNavigate }: ProjectsProps) {
   });
 
   const handleProjectClick = (project: Project) => {
-    if (project.status === 'ongoing' && project.external_url) {
-      window.open(project.external_url, '_blank');
-    } else {
-      onNavigate('project', project.slug);
-    }
+    onNavigate('project', project.slug);
   };
 
   return (
