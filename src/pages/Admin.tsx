@@ -5,6 +5,7 @@ import { convertGoogleDriveUrl } from '../lib/utils';
 import { Plus, Edit2, Trash2, Save, X, Lock, LogOut, User, Link } from 'lucide-react';
 import { ReviewsManager } from '../components/ReviewsManager';
 import MetricsManager from '../components/MetricsManager';
+import { LeadsManager } from '../components/LeadsManager';
 
 interface AdminProps {
   isAuthenticated: boolean;
@@ -12,7 +13,7 @@ interface AdminProps {
 }
 
 export function Admin({ isAuthenticated, onAuthChange }: AdminProps) {
-  const [activeTab, setActiveTab] = useState<'projects' | 'reviews' | 'settings' | 'metrics'>('projects');
+  const [activeTab, setActiveTab] = useState<'projects' | 'reviews' | 'settings' | 'metrics' | 'leads'>('projects');
   const [projects, setProjects] = useState<Project[]>([]);
   const [editingProject, setEditingProject] = useState<Project | null>(null);
   const [showProjectForm, setShowProjectForm] = useState(false);
@@ -362,6 +363,16 @@ export function Admin({ isAuthenticated, onAuthChange }: AdminProps) {
               Metrics
             </button>
             <button
+              onClick={() => setActiveTab('leads')}
+              className={`pb-4 px-2 font-medium transition-colors ${
+                activeTab === 'leads'
+                  ? 'text-[#2DB6E8] border-b-2 border-[#2DB6E8]'
+                  : 'text-[#2F6F6B]/60 hover:text-[#2F6F6B]'
+              }`}
+            >
+              Leads
+            </button>
+            <button
               onClick={() => setActiveTab('settings')}
               className={`pb-4 px-2 font-medium transition-colors ${
                 activeTab === 'settings'
@@ -374,7 +385,9 @@ export function Admin({ isAuthenticated, onAuthChange }: AdminProps) {
           </div>
         </div>
 
-        {activeTab === 'reviews' ? (
+        {activeTab === 'leads' ? (
+          <LeadsManager onMessage={showMessage} />
+        ) : activeTab === 'reviews' ? (
           <ReviewsManager onMessage={showMessage} />
         ) : activeTab === 'metrics' ? (
           <div className="max-w-2xl">

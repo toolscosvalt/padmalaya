@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { AnimatedSection } from '../components/AnimatedSection';
+import { LeadForm } from '../components/LeadForm';
 import { supabase } from '../lib/supabase';
 import { ContactSettings } from '../lib/types';
 import { Phone, Mail, MapPin, MessageCircle } from 'lucide-react';
@@ -112,32 +113,53 @@ export function Contact() {
                   </div>
                 </AnimatedSection>
               </div>
-
-              <AnimatedSection delay={300} className="text-center bg-[#2F6F6B] text-white p-12 md:p-16 rounded-sm">
-                <h2 className="font-serif text-3xl md:text-4xl font-light mb-4 text-white">
-                  Ready to Build Your Future?
-                </h2>
-                <p className="text-lg text-white/80 mb-8 max-w-2xl mx-auto leading-relaxed">
-                  Whether you are looking for your dream home or want to learn more about our
-                  projects, we are here to help.
-                </p>
-                <div className="flex flex-col sm:flex-row items-center justify-center space-y-4 sm:space-y-0 sm:space-x-4">
-                  <a
-                    href={`tel:${contactInfo.phone}`}
-                    className="btn-primary w-full sm:w-auto"
-                  >
-                    Call Now
-                  </a>
-                  <button
-                    onClick={handleWhatsApp}
-                    className="btn-secondary w-full sm:w-auto bg-white border-white text-[#2F6F6B] hover:bg-[#F8FAFB]"
-                  >
-                    WhatsApp Us
-                  </button>
-                </div>
-              </AnimatedSection>
             </div>
           )}
+
+          <div className="max-w-5xl mx-auto">
+            <AnimatedSection delay={300}>
+              <div className="bg-white rounded-sm shadow-sm overflow-hidden">
+                <div className="grid grid-cols-1 lg:grid-cols-5">
+                  <div className="lg:col-span-2 bg-[#2F6F6B] p-8 md:p-10 flex flex-col justify-between">
+                    <div>
+                      <h2 className="font-serif text-3xl md:text-4xl font-light text-white mb-4">
+                        Request a Callback
+                      </h2>
+                      <div className="w-12 h-px bg-[#D4A24C] mb-6"></div>
+                      <p className="text-white/70 leading-relaxed mb-8">
+                        Tell us about your requirements and our team will get back to you at the most convenient time.
+                      </p>
+                    </div>
+
+                    <div className="space-y-4">
+                      <div className="flex items-center gap-3">
+                        <div className="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center flex-shrink-0">
+                          <Phone size={14} className="text-white/80" />
+                        </div>
+                        <span className="text-white/70 text-sm">Personal callback at your preferred time</span>
+                      </div>
+                      <div className="flex items-center gap-3">
+                        <div className="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center flex-shrink-0">
+                          <Mail size={14} className="text-white/80" />
+                        </div>
+                        <span className="text-white/70 text-sm">Detailed project information via email</span>
+                      </div>
+                      <div className="flex items-center gap-3">
+                        <div className="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center flex-shrink-0">
+                          <MapPin size={14} className="text-white/80" />
+                        </div>
+                        <span className="text-white/70 text-sm">Site visit arrangements on request</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="lg:col-span-3 p-8 md:p-10">
+                    <LeadForm />
+                  </div>
+                </div>
+              </div>
+            </AnimatedSection>
+          </div>
         </div>
       </section>
     </div>

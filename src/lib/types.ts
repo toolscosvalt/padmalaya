@@ -62,6 +62,19 @@ export interface ContactSettings {
   address: string;
 }
 
+export interface Lead {
+  id: string;
+  name: string;
+  email: string;
+  phone: string;
+  preferred_contact_time: 'morning' | 'afternoon' | 'evening' | 'anytime';
+  interest: 'ongoing_project' | 'completed_project' | 'investment' | 'general';
+  message: string | null;
+  status: 'new' | 'contacted' | 'qualified' | 'closed';
+  created_at: string;
+  updated_at: string;
+}
+
 export interface CustomerReview {
   id: string;
   customer_name: string;
