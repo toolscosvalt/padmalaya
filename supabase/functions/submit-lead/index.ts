@@ -65,6 +65,7 @@ interface LeadPayload {
   interest: string;
   heard_from?: string | null;
   message?: string | null;
+  turnstileToken: string;
 }
 
 interface ValidationError {
@@ -150,6 +151,13 @@ function validatePayload(data: LeadPayload): ValidationError[] {
     }
   }
 
+  // Turnstile token validation
+  if (!data.turnstileToken || typeof data.turnstileToken !== "string") {
+    errors.push({ field: "turnstileToken", message: "Security verification is required." });
+  } else if (data.turnstileToken.trim().length === 0) {
+    errors.push({ field: "turnstileToken", message: "Security verification token is invalid." });
+  }
+
   return errors;
 }
 
@@ -159,6 +167,51 @@ function getClientIp(req: Request): string | null {
     req.headers.get("x-real-ip") ||
     null
   );
+}
+
+/**
+ * Verify Cloudflare Turnstile token
+ * Prevents bot submissions by validating CAPTCHA on server-side
+ */
+async function verifyTurnstile(token: string, ip: string | null): Promise<{ success: boolean; error?: string }> {
+  const secretKey = Deno.env.get("TURNSTILE_SECRET_KEY");
+
+  if (!secretKey) {
+    console.error("TURNSTILE_SECRET_KEY not configured");
+    return { success: false, error: "CAPTCHA verification not configured" };
+  }
+
+  try {
+    const response = await fetch("https://challenges.cloudflare.com/turnstile/v0/siteverify", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        secret: secretKey,
+        response: token,
+        remoteip: ip,
+      }),
+    });
+
+    const data = await response.json();
+
+    if (!data.success) {
+      console.error("Turnstile verification failed:", data["error-codes"]);
+      return {
+        success: false,
+        error: "Security verification failed. Please try again."
+      };
+    }
+
+    return { success: true };
+  } catch (error) {
+    console.error("Turnstile verification error:", error);
+    return {
+      success: false,
+      error: "Could not verify security check. Please try again."
+    };
+  }
 }
 
 async function checkRateLimit(
@@ -266,6 +319,15 @@ Deno.serve(async (req: Request) => {
 
     const clientIp = getClientIp(req);
     const normalizedEmail = body.email.trim().toLowerCase();
+
+    // Verify Turnstile CAPTCHA token (bot protection)
+    const turnstileVerification = await verifyTurnstile(body.turnstileToken, clientIp);
+    if (!turnstileVerification.success) {
+      return new Response(
+        JSON.stringify({ error: turnstileVerification.error || "Security verification failed." }),
+        { status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
 
     const rateLimit = await checkRateLimit(supabase, normalizedEmail, clientIp);
     if (rateLimit.limited) {

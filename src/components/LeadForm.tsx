@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { User, Mail, Phone, Clock, Building2, MessageSquare, CheckCircle, AlertCircle, Loader } from 'lucide-react';
 import { sanitizeName, sanitizeEmail, sanitizePhone, sanitizeMessage, validateSafeInput } from '../lib/sanitize';
+import { Turnstile } from '@marsidev/react-turnstile';
 
 interface LeadFormData {
   name: string;
@@ -141,6 +142,8 @@ export function LeadForm({ onSubmitSuccess }: LeadFormProps) {
   const [errorMessage, setErrorMessage] = useState('');
   const [cooldownSeconds, setCooldownSeconds] = useState(0);
   const cooldownTimer = useRef<ReturnType<typeof setInterval> | null>(null);
+  const [turnstileToken, setTurnstileToken] = useState<string>('');
+  const turnstileRef = useRef<any>(null);
 
   useEffect(() => {
     return () => {
@@ -200,6 +203,12 @@ export function LeadForm({ onSubmitSuccess }: LeadFormProps) {
       return;
     }
 
+    // Check for CAPTCHA token
+    if (!turnstileToken) {
+      setErrorMessage('Please complete the security verification.');
+      return;
+    }
+
     setSubmitStatus('loading');
     setErrorMessage('');
 
@@ -222,6 +231,7 @@ export function LeadForm({ onSubmitSuccess }: LeadFormProps) {
           interest: formData.interest,
           heard_from: formData.heard_from || null,
           message: formData.message ? sanitizeMessage(formData.message.trim()) : null,
+          turnstileToken: turnstileToken,
         }),
       });
 
@@ -234,6 +244,11 @@ export function LeadForm({ onSubmitSuccess }: LeadFormProps) {
       setSubmitStatus('success');
       setFormData({ name: '', email: '', phone: '', preferred_contact_time: '', interest: '', heard_from: '', message: '' });
       setFieldErrors({});
+      setTurnstileToken('');
+      // Reset Turnstile widget
+      if (turnstileRef.current) {
+        turnstileRef.current.reset();
+      }
       startCooldown(60);
       onSubmitSuccess?.();
     } catch (err) {
@@ -484,6 +499,24 @@ export function LeadForm({ onSubmitSuccess }: LeadFormProps) {
         </div>
       </div>
 
+      {/* CAPTCHA Verification */}
+      <div className="flex flex-col items-center">
+        <Turnstile
+          ref={turnstileRef}
+          siteKey={import.meta.env.VITE_TURNSTILE_SITE_KEY}
+          onSuccess={(token: string) => setTurnstileToken(token)}
+          onError={() => setTurnstileToken('')}
+          onExpire={() => setTurnstileToken('')}
+          options={{
+            theme: 'light',
+            size: 'normal',
+          }}
+        />
+        {!turnstileToken && submitStatus === 'idle' && (
+          <p className="text-xs text-[#2F6F6B]/60 mt-2">Please complete the security check above</p>
+        )}
+      </div>
+
       {submitStatus === 'error' && (
         <div className="flex items-start gap-2 p-3 bg-red-50 border border-red-200 rounded-lg text-sm text-red-700">
           <AlertCircle size={16} className="flex-shrink-0 mt-0.5" />
@@ -493,7 +526,7 @@ export function LeadForm({ onSubmitSuccess }: LeadFormProps) {
 
       <button
         type="submit"
-        disabled={submitStatus === 'loading' || cooldownSeconds > 0}
+        disabled={submitStatus === 'loading' || cooldownSeconds > 0 || !turnstileToken}
         className="w-full btn-primary py-3.5 font-medium flex items-center justify-center gap-2 disabled:opacity-60 disabled:cursor-not-allowed"
       >
         {submitStatus === 'loading' ? (
