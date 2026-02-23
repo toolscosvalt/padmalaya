@@ -7,6 +7,7 @@ interface LeadFormData {
   phone: string;
   preferred_contact_time: string;
   interest: string;
+  heard_from: string;
   message: string;
 }
 
@@ -16,6 +17,7 @@ interface FieldErrors {
   phone?: string;
   preferred_contact_time?: string;
   interest?: string;
+  heard_from?: string;
   message?: string;
 }
 
@@ -31,6 +33,17 @@ const CONTACT_TIME_OPTIONS = [
   { value: 'afternoon', label: 'Afternoon (12pm - 5pm)' },
   { value: 'evening', label: 'Evening (5pm - 8pm)' },
   { value: 'anytime', label: 'Anytime' },
+];
+
+const HEARD_FROM_OPTIONS = [
+  { value: 'google_search', label: 'Google Search' },
+  { value: 'social_media', label: 'Social Media' },
+  { value: 'friend_family', label: 'Friend / Family' },
+  { value: 'newspaper_magazine', label: 'Newspaper / Magazine' },
+  { value: 'hoarding_banner', label: 'Hoarding / Banner' },
+  { value: 'site_visit', label: 'Site Visit' },
+  { value: 'existing_customer', label: 'Existing Customer' },
+  { value: 'other', label: 'Other' },
 ];
 
 function validateEmail(email: string): boolean {
@@ -91,6 +104,7 @@ export function LeadForm({ onSubmitSuccess }: LeadFormProps) {
     phone: '',
     preferred_contact_time: '',
     interest: '',
+    heard_from: '',
     message: '',
   });
   const [fieldErrors, setFieldErrors] = useState<FieldErrors>({});
@@ -156,6 +170,7 @@ export function LeadForm({ onSubmitSuccess }: LeadFormProps) {
           phone: formData.phone.trim(),
           preferred_contact_time: formData.preferred_contact_time,
           interest: formData.interest,
+          heard_from: formData.heard_from || null,
           message: formData.message.trim() || null,
         }),
       });
@@ -167,7 +182,7 @@ export function LeadForm({ onSubmitSuccess }: LeadFormProps) {
       }
 
       setSubmitStatus('success');
-      setFormData({ name: '', email: '', phone: '', preferred_contact_time: '', interest: '', message: '' });
+      setFormData({ name: '', email: '', phone: '', preferred_contact_time: '', interest: '', heard_from: '', message: '' });
       setFieldErrors({});
       startCooldown(60);
       onSubmitSuccess?.();
@@ -350,6 +365,41 @@ export function LeadForm({ onSubmitSuccess }: LeadFormProps) {
             <AlertCircle size={11} /> {fieldErrors.interest}
           </p>
         )}
+      </div>
+
+      <div>
+        <label className="block text-sm font-medium text-[#1A3D3B] mb-2">
+          How did you hear about us? <span className="text-[#2F6F6B]/40 font-normal">(Optional)</span>
+        </label>
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-2.5">
+          {HEARD_FROM_OPTIONS.map((opt) => (
+            <label
+              key={opt.value}
+              className={`relative flex items-center gap-2 cursor-pointer rounded-lg border-2 px-3 py-2.5 text-sm transition-all select-none ${
+                formData.heard_from === opt.value
+                  ? 'border-[#2F6F6B] bg-[#2F6F6B]/5 text-[#1A3D3B]'
+                  : 'border-gray-200 text-[#2F6F6B]/70 hover:border-[#2F6F6B]/30 hover:text-[#2F6F6B]'
+              }`}
+            >
+              <input
+                type="radio"
+                name="heard_from"
+                value={opt.value}
+                checked={formData.heard_from === opt.value}
+                onChange={handleChange}
+                className="sr-only"
+              />
+              <span className={`w-3.5 h-3.5 rounded-full border-2 flex-shrink-0 flex items-center justify-center transition-colors ${
+                formData.heard_from === opt.value ? 'border-[#2F6F6B] bg-[#2F6F6B]' : 'border-gray-300'
+              }`}>
+                {formData.heard_from === opt.value && (
+                  <span className="w-1.5 h-1.5 rounded-full bg-white" />
+                )}
+              </span>
+              <span className="text-xs font-medium leading-tight">{opt.label}</span>
+            </label>
+          ))}
+        </div>
       </div>
 
       <div>

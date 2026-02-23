@@ -69,6 +69,7 @@ export interface Lead {
   phone: string;
   preferred_contact_time: 'morning' | 'afternoon' | 'evening' | 'anytime';
   interest: 'ongoing_project' | 'completed_project' | 'investment' | 'general';
+  heard_from: 'google_search' | 'social_media' | 'friend_family' | 'newspaper_magazine' | 'hoarding_banner' | 'site_visit' | 'existing_customer' | 'other' | null;
   message: string | null;
   status: 'new' | 'contacted' | 'qualified' | 'closed';
   created_at: string;

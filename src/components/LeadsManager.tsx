@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { supabase } from '../lib/supabase';
 import { Lead } from '../lib/types';
-import { Search, Filter, ChevronDown, Mail, Phone, Clock, Tag, MessageSquare, Calendar, X } from 'lucide-react';
+import { Search, Filter, ChevronDown, Mail, Phone, Clock, Tag, MessageSquare, Calendar, X, Megaphone } from 'lucide-react';
 
 const STATUS_OPTIONS = ['new', 'contacted', 'qualified', 'closed'] as const;
 const INTEREST_LABELS: Record<string, string> = {
@@ -15,6 +15,16 @@ const CONTACT_TIME_LABELS: Record<string, string> = {
   afternoon: 'Afternoon (12pm-5pm)',
   evening: 'Evening (5pm-8pm)',
   anytime: 'Anytime',
+};
+const HEARD_FROM_LABELS: Record<string, string> = {
+  google_search: 'Google Search',
+  social_media: 'Social Media',
+  friend_family: 'Friend / Family',
+  newspaper_magazine: 'Newspaper / Magazine',
+  hoarding_banner: 'Hoarding / Banner',
+  site_visit: 'Site Visit',
+  existing_customer: 'Existing Customer',
+  other: 'Other',
 };
 const STATUS_COLORS: Record<string, string> = {
   new: 'bg-blue-100 text-blue-700',
@@ -220,6 +230,12 @@ export function LeadsManager({ onMessage }: LeadsManagerProps) {
                         <Tag size={14} className="text-[#2DB6E8] flex-shrink-0" />
                         <span className="text-[#2F6F6B]/70">{INTEREST_LABELS[lead.interest]}</span>
                       </div>
+                      {lead.heard_from && (
+                        <div className="flex items-center gap-2 text-sm">
+                          <Megaphone size={14} className="text-[#2DB6E8] flex-shrink-0" />
+                          <span className="text-[#2F6F6B]/70">{HEARD_FROM_LABELS[lead.heard_from] ?? lead.heard_from}</span>
+                        </div>
+                      )}
                       <div className="flex items-center gap-2 text-sm">
                         <Calendar size={14} className="text-[#2DB6E8] flex-shrink-0" />
                         <span className="text-[#2F6F6B]/70">

@@ -9,6 +9,10 @@ const corsHeaders = {
 
 const VALID_INTERESTS = ["ongoing_project", "completed_project", "investment", "general"];
 const VALID_CONTACT_TIMES = ["morning", "afternoon", "evening", "anytime"];
+const VALID_HEARD_FROM = [
+  "google_search", "social_media", "friend_family", "newspaper_magazine",
+  "hoarding_banner", "site_visit", "existing_customer", "other",
+];
 const EMAIL_REGEX = /^[A-Za-z0-9._%+\-]+@[A-Za-z0-9.\-]+\.[A-Za-z]{2,}$/;
 const PHONE_CLEAN_REGEX = /[\s\-().+]/g;
 const PHONE_DIGITS_REGEX = /^[0-9]{7,15}$/;
@@ -24,6 +28,7 @@ interface LeadPayload {
   phone: string;
   preferred_contact_time: string;
   interest: string;
+  heard_from?: string | null;
   message?: string | null;
 }
 
@@ -62,6 +67,10 @@ function validatePayload(data: LeadPayload): ValidationError[] {
 
   if (!data.interest || !VALID_INTERESTS.includes(data.interest)) {
     errors.push({ field: "interest", message: "Please select a valid area of interest." });
+  }
+
+  if (data.heard_from && !VALID_HEARD_FROM.includes(data.heard_from)) {
+    errors.push({ field: "heard_from", message: "Invalid source value." });
   }
 
   if (data.message && typeof data.message === "string" && data.message.length > 1000) {
@@ -134,6 +143,7 @@ async function syncToGoogleSheets(lead: Record<string, unknown>, webhookUrl: str
       phone: lead.phone,
       preferred_contact_time: lead.preferred_contact_time,
       interest: lead.interest,
+      heard_from: lead.heard_from ?? "",
       message: lead.message ?? "",
       status: lead.status,
       submitted_at: lead.created_at,
@@ -194,6 +204,7 @@ Deno.serve(async (req: Request) => {
       phone: body.phone.trim(),
       preferred_contact_time: body.preferred_contact_time,
       interest: body.interest,
+      heard_from: body.heard_from || null,
       message: body.message?.trim() || null,
       status: "new",
       source_ip: clientIp,
