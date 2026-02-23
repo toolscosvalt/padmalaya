@@ -1,11 +1,46 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { createClient } from "npm:@supabase/supabase-js@2";
 
-const corsHeaders = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Methods": "POST, OPTIONS",
-  "Access-Control-Allow-Headers": "Content-Type, Authorization, X-Client-Info, Apikey",
-};
+// Whitelist of allowed origins for CORS
+const ALLOWED_ORIGINS = [
+  // Production domains (current)
+  "https://padmalayagroup.in",
+  "https://www.padmalayagroup.in",
+  // Vercel deployments
+  "https://padmalaya.vercel.app",
+  "https://padmalaya-git-main-toolscosvalt.vercel.app",
+  "https://padmalaya-toolscosvalt.vercel.app",
+  // Development origins
+  "http://localhost:5173",
+  "http://localhost:5174",
+  "http://localhost:5175",
+  "http://localhost:5176",
+  "http://127.0.0.1:5173",
+  "http://127.0.0.1:5174",
+  "http://127.0.0.1:5175",
+  "http://127.0.0.1:5176",
+];
+
+/**
+ * Get CORS headers based on request origin
+ * Only allows whitelisted domains to prevent unauthorized API access
+ */
+function getCorsHeaders(origin: string | null): Record<string, string> {
+  // Check if origin is in whitelist or matches Vercel preview pattern
+  const isAllowed = origin && (
+    ALLOWED_ORIGINS.includes(origin) ||
+    // Allow Vercel preview deployments (e.g., padmalaya-abc123.vercel.app)
+    /^https:\/\/padmalaya-[a-z0-9-]+\.vercel\.app$/.test(origin)
+  );
+
+  return {
+    "Access-Control-Allow-Origin": isAllowed ? origin : ALLOWED_ORIGINS[0],
+    "Access-Control-Allow-Methods": "POST, OPTIONS",
+    "Access-Control-Allow-Headers": "Content-Type, Authorization, X-Client-Info, Apikey",
+    "Access-Control-Max-Age": "86400", // Cache preflight for 24 hours
+    "Vary": "Origin", // Important: tells CDN to cache based on origin
+  };
+}
 
 const VALID_INTERESTS = ["ongoing_project", "completed_project", "investment", "general"];
 const VALID_CONTACT_TIMES = ["morning", "afternoon", "evening", "anytime"];
@@ -190,6 +225,10 @@ async function syncToGoogleSheets(lead: Record<string, unknown>, webhookUrl: str
 }
 
 Deno.serve(async (req: Request) => {
+  // Get origin from request and generate appropriate CORS headers
+  const origin = req.headers.get("origin");
+  const corsHeaders = getCorsHeaders(origin);
+
   if (req.method === "OPTIONS") {
     return new Response(null, { status: 200, headers: corsHeaders });
   }
