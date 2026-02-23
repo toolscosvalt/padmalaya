@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { User, Mail, Phone, Clock, Building2, MessageSquare, CheckCircle, AlertCircle, Loader } from 'lucide-react';
+import { sanitizeName, sanitizeEmail, sanitizePhone, sanitizeMessage, validateSafeInput } from '../lib/sanitize';
 
 interface LeadFormData {
   name: string;
@@ -58,24 +59,46 @@ function validatePhone(phone: string): boolean {
 function validateForm(data: LeadFormData): FieldErrors {
   const errors: FieldErrors = {};
 
+  // Name validation with security checks
   if (!data.name.trim()) {
     errors.name = 'Name is required.';
-  } else if (data.name.trim().length < 2) {
-    errors.name = 'Name must be at least 2 characters.';
-  } else if (data.name.trim().length > 100) {
-    errors.name = 'Name must not exceed 100 characters.';
+  } else {
+    const nameValidation = validateSafeInput(data.name);
+    if (!nameValidation.valid) {
+      errors.name = nameValidation.reason || 'Invalid name format.';
+    } else if (data.name.trim().length < 2) {
+      errors.name = 'Name must be at least 2 characters.';
+    } else if (data.name.trim().length > 100) {
+      errors.name = 'Name must not exceed 100 characters.';
+    } else if (!/^[a-zA-Z\s.',-]+$/.test(data.name.trim())) {
+      errors.name = 'Name can only contain letters, spaces, and basic punctuation.';
+    }
   }
 
+  // Email validation with security checks
   if (!data.email.trim()) {
     errors.email = 'Email is required.';
-  } else if (!validateEmail(data.email.trim())) {
-    errors.email = 'Please enter a valid email address.';
+  } else {
+    const emailValidation = validateSafeInput(data.email);
+    if (!emailValidation.valid) {
+      errors.email = emailValidation.reason || 'Invalid email format.';
+    } else if (!validateEmail(data.email.trim())) {
+      errors.email = 'Please enter a valid email address.';
+    }
   }
 
+  // Phone validation with security checks
   if (!data.phone.trim()) {
     errors.phone = 'Phone number is required.';
-  } else if (!validatePhone(data.phone.trim())) {
-    errors.phone = 'Please enter a valid phone number (7-15 digits).';
+  } else {
+    const phoneValidation = validateSafeInput(data.phone);
+    if (!phoneValidation.valid) {
+      errors.phone = phoneValidation.reason || 'Invalid phone format.';
+    } else if (!validatePhone(data.phone.trim())) {
+      errors.phone = 'Please enter a valid phone number (7-15 digits).';
+    } else if (!/^[0-9+\s\-().]+$/.test(data.phone.trim())) {
+      errors.phone = 'Phone number contains invalid characters.';
+    }
   }
 
   if (!data.preferred_contact_time) {
@@ -86,8 +109,14 @@ function validateForm(data: LeadFormData): FieldErrors {
     errors.interest = 'Please select your area of interest.';
   }
 
-  if (data.message && data.message.length > 1000) {
-    errors.message = 'Message must not exceed 1000 characters.';
+  // Message validation with security checks
+  if (data.message) {
+    const messageValidation = validateSafeInput(data.message);
+    if (!messageValidation.valid) {
+      errors.message = messageValidation.reason || 'Message contains invalid content.';
+    } else if (data.message.length > 1000) {
+      errors.message = 'Message must not exceed 1000 characters.';
+    }
   }
 
   return errors;
@@ -134,7 +163,28 @@ export function LeadForm({ onSubmitSuccess }: LeadFormProps) {
 
   function handleChange(e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) {
     const { name, value } = e.target;
-    setFormData((prev) => ({ ...prev, [name]: value }));
+
+    // Sanitize input based on field type
+    let sanitizedValue = value;
+    switch (name) {
+      case 'name':
+        sanitizedValue = sanitizeName(value);
+        break;
+      case 'email':
+        sanitizedValue = sanitizeEmail(value);
+        break;
+      case 'phone':
+        sanitizedValue = sanitizePhone(value);
+        break;
+      case 'message':
+        sanitizedValue = sanitizeMessage(value);
+        break;
+      default:
+        // For select fields, keep original value
+        sanitizedValue = value;
+    }
+
+    setFormData((prev) => ({ ...prev, [name]: sanitizedValue }));
     if (fieldErrors[name as keyof FieldErrors]) {
       setFieldErrors((prev) => ({ ...prev, [name]: undefined }));
     }
@@ -165,13 +215,13 @@ export function LeadForm({ onSubmitSuccess }: LeadFormProps) {
           Apikey: supabaseAnonKey,
         },
         body: JSON.stringify({
-          name: formData.name.trim(),
-          email: formData.email.trim().toLowerCase(),
-          phone: formData.phone.trim(),
+          name: sanitizeName(formData.name.trim()),
+          email: sanitizeEmail(formData.email.trim()),
+          phone: sanitizePhone(formData.phone.trim()),
           preferred_contact_time: formData.preferred_contact_time,
           interest: formData.interest,
           heard_from: formData.heard_from || null,
-          message: formData.message.trim() || null,
+          message: formData.message ? sanitizeMessage(formData.message.trim()) : null,
         }),
       });
 

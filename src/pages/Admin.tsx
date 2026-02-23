@@ -6,6 +6,7 @@ import { Plus, Edit2, Trash2, Save, X, Lock, LogOut, User, Link } from 'lucide-r
 import { ReviewsManager } from '../components/ReviewsManager';
 import MetricsManager from '../components/MetricsManager';
 import { LeadsManager } from '../components/LeadsManager';
+import { sanitizeInput, sanitizeUrl } from '../lib/sanitize';
 
 interface AdminProps {
   isAuthenticated: boolean;
@@ -63,7 +64,14 @@ export function Admin({ isAuthenticated, onAuthChange }: AdminProps) {
   async function handleCeoImageUrlSave() {
     if (!ceoImageUrlInput.trim()) return;
 
-    const converted = convertGoogleDriveUrl(ceoImageUrlInput.trim());
+    // Validate URL
+    const urlValidation = sanitizeUrl(ceoImageUrlInput.trim());
+    if (!urlValidation.valid) {
+      showMessage('error', `Invalid image URL: ${urlValidation.reason}`);
+      return;
+    }
+
+    const converted = convertGoogleDriveUrl(urlValidation.sanitized);
 
     const { error } = await supabase
       .from('site_settings')
@@ -82,7 +90,14 @@ export function Admin({ isAuthenticated, onAuthChange }: AdminProps) {
   async function handleMdImageUrlSave() {
     if (!mdImageUrlInput.trim()) return;
 
-    const converted = convertGoogleDriveUrl(mdImageUrlInput.trim());
+    // Validate URL
+    const urlValidation = sanitizeUrl(mdImageUrlInput.trim());
+    if (!urlValidation.valid) {
+      showMessage('error', `Invalid image URL: ${urlValidation.reason}`);
+      return;
+    }
+
+    const converted = convertGoogleDriveUrl(urlValidation.sanitized);
 
     const { error } = await supabase
       .from('site_settings')
@@ -148,18 +163,39 @@ export function Admin({ isAuthenticated, onAuthChange }: AdminProps) {
   }
 
   async function handleSaveProject(formData: FormData) {
+    const externalUrl = formData.get('external_url') as string;
+    const heroImageUrl = formData.get('hero_image_url') as string;
+
+    // Validate external URL
+    if (externalUrl) {
+      const urlValidation = sanitizeUrl(externalUrl);
+      if (!urlValidation.valid) {
+        showMessage('error', `Invalid external URL: ${urlValidation.reason}`);
+        return;
+      }
+    }
+
+    // Validate hero image URL
+    if (heroImageUrl) {
+      const imageUrlValidation = sanitizeUrl(heroImageUrl);
+      if (!imageUrlValidation.valid) {
+        showMessage('error', `Invalid image URL: ${imageUrlValidation.reason}`);
+        return;
+      }
+    }
+
     const projectData = {
-      name: formData.get('name') as string,
-      slug: (formData.get('name') as string).toLowerCase().replace(/\s+/g, '-'),
-      tagline: formData.get('tagline') as string,
-      description: formData.get('description') as string,
-      location: formData.get('location') as string,
+      name: sanitizeInput(formData.get('name') as string),
+      slug: sanitizeInput((formData.get('name') as string).toLowerCase().replace(/\s+/g, '-')),
+      tagline: sanitizeInput(formData.get('tagline') as string),
+      description: sanitizeInput(formData.get('description') as string),
+      location: sanitizeInput(formData.get('location') as string),
       status: formData.get('status') as string,
-      external_url: formData.get('external_url') as string || null,
-      hero_image_url: formData.get('hero_image_url') as string,
+      external_url: externalUrl ? sanitizeUrl(externalUrl).sanitized : null,
+      hero_image_url: sanitizeUrl(heroImageUrl).sanitized,
       year_completed: formData.get('year_completed') ? parseInt(formData.get('year_completed') as string) : null,
       total_units: formData.get('total_units') ? parseInt(formData.get('total_units') as string) : null,
-      total_area: formData.get('total_area') as string || null,
+      total_area: formData.get('total_area') ? sanitizeInput(formData.get('total_area') as string) : null,
       display_order: formData.get('display_order') ? parseInt(formData.get('display_order') as string) : 0,
       is_featured: formData.get('is_featured') === 'true',
     };
@@ -200,12 +236,23 @@ export function Admin({ isAuthenticated, onAuthChange }: AdminProps) {
   }
 
   async function handleSaveImage(projectId: string, formData: FormData) {
+    const imageUrl = formData.get('image_url') as string;
+
+    // Validate image URL
+    if (imageUrl) {
+      const urlValidation = sanitizeUrl(imageUrl);
+      if (!urlValidation.valid) {
+        showMessage('error', `Invalid image URL: ${urlValidation.reason}`);
+        return;
+      }
+    }
+
     const imageData = {
       project_id: projectId,
-      image_url: formData.get('image_url') as string,
+      image_url: sanitizeUrl(imageUrl).sanitized,
       category: formData.get('category') as string || null,
       display_order: formData.get('display_order') ? parseInt(formData.get('display_order') as string) : 0,
-      caption: formData.get('caption') as string || null,
+      caption: formData.get('caption') ? sanitizeInput(formData.get('caption') as string) : null,
     };
 
     const { error } = await supabase.from('project_images').insert([imageData]);
@@ -563,7 +610,7 @@ export function Admin({ isAuthenticated, onAuthChange }: AdminProps) {
                   <input
                     type="text"
                     name="tagline"
-                    defaultValue={editingProject?.tagline}
+                    defaultValue={editingProject?.tagline || ''}
                     className="w-full px-4 py-2 border border-gray-300 rounded"
                   />
                 </div>
@@ -572,7 +619,7 @@ export function Admin({ isAuthenticated, onAuthChange }: AdminProps) {
                   <label className="block text-sm font-medium mb-1">Description</label>
                   <textarea
                     name="description"
-                    defaultValue={editingProject?.description}
+                    defaultValue={editingProject?.description || ''}
                     rows={4}
                     className="w-full px-4 py-2 border border-gray-300 rounded"
                   />

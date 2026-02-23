@@ -40,24 +40,55 @@ interface ValidationError {
 function validatePayload(data: LeadPayload): ValidationError[] {
   const errors: ValidationError[] = [];
 
+  // Name validation with enhanced security checks
   if (!data.name || typeof data.name !== "string") {
     errors.push({ field: "name", message: "Name is required." });
-  } else if (data.name.trim().length < 2 || data.name.trim().length > 100) {
-    errors.push({ field: "name", message: "Name must be between 2 and 100 characters." });
+  } else {
+    const trimmedName = data.name.trim();
+    const hasHTML = /<[^>]*>/g.test(trimmedName);
+    const hasSQLKeywords = /(drop|delete|insert|update|select|union|exec|script)\s+(table|database|from)/i.test(trimmedName);
+
+    if (trimmedName.length < 2 || trimmedName.length > 100) {
+      errors.push({ field: "name", message: "Name must be between 2 and 100 characters." });
+    } else if (hasHTML) {
+      errors.push({ field: "name", message: "Name cannot contain HTML tags." });
+    } else if (hasSQLKeywords) {
+      errors.push({ field: "name", message: "Name contains invalid characters." });
+    } else if (!/^[a-zA-Z\s.',-]+$/.test(trimmedName)) {
+      errors.push({ field: "name", message: "Name can only contain letters, spaces, and basic punctuation." });
+    }
   }
 
+  // Email validation with enhanced security
   if (!data.email || typeof data.email !== "string") {
     errors.push({ field: "email", message: "Email is required." });
-  } else if (!EMAIL_REGEX.test(data.email.trim())) {
-    errors.push({ field: "email", message: "Please provide a valid email address." });
+  } else {
+    const trimmedEmail = data.email.trim();
+    const hasHTML = /<[^>]*>/g.test(trimmedEmail);
+
+    if (hasHTML) {
+      errors.push({ field: "email", message: "Email cannot contain HTML tags." });
+    } else if (!EMAIL_REGEX.test(trimmedEmail)) {
+      errors.push({ field: "email", message: "Please provide a valid email address." });
+    }
   }
 
+  // Phone validation with enhanced security
   if (!data.phone || typeof data.phone !== "string") {
     errors.push({ field: "phone", message: "Phone number is required." });
   } else {
-    const cleaned = data.phone.trim().replace(PHONE_CLEAN_REGEX, "");
-    if (!PHONE_DIGITS_REGEX.test(cleaned)) {
-      errors.push({ field: "phone", message: "Please provide a valid phone number (7-15 digits)." });
+    const trimmedPhone = data.phone.trim();
+    const hasHTML = /<[^>]*>/g.test(trimmedPhone);
+
+    if (hasHTML) {
+      errors.push({ field: "phone", message: "Phone number cannot contain HTML tags." });
+    } else {
+      const cleaned = trimmedPhone.replace(PHONE_CLEAN_REGEX, "");
+      if (!PHONE_DIGITS_REGEX.test(cleaned)) {
+        errors.push({ field: "phone", message: "Please provide a valid phone number (7-15 digits)." });
+      } else if (!/^[0-9+\s\-().]+$/.test(trimmedPhone)) {
+        errors.push({ field: "phone", message: "Phone number contains invalid characters." });
+      }
     }
   }
 
@@ -73,8 +104,15 @@ function validatePayload(data: LeadPayload): ValidationError[] {
     errors.push({ field: "heard_from", message: "Invalid source value." });
   }
 
-  if (data.message && typeof data.message === "string" && data.message.length > 1000) {
-    errors.push({ field: "message", message: "Message must not exceed 1000 characters." });
+  // Message validation with enhanced security
+  if (data.message && typeof data.message === "string") {
+    const hasScripts = /<script|javascript:|onerror=|onload=/i.test(data.message);
+
+    if (data.message.length > 1000) {
+      errors.push({ field: "message", message: "Message must not exceed 1000 characters." });
+    } else if (hasScripts) {
+      errors.push({ field: "message", message: "Message contains prohibited content." });
+    }
   }
 
   return errors;
