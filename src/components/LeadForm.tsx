@@ -510,6 +510,8 @@ export function LeadForm({ onSubmitSuccess }: LeadFormProps) {
           options={{
             theme: 'light',
             size: 'normal',
+            execution: 'render',
+            appearance: 'always',
           }}
         />
         {!turnstileToken && submitStatus === 'idle' && (
