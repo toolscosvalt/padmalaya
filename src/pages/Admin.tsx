@@ -7,6 +7,9 @@ import { ReviewsManager } from '../components/ReviewsManager';
 import MetricsManager from '../components/MetricsManager';
 import { LeadsManager } from '../components/LeadsManager';
 import { sanitizeInput, sanitizeUrl } from '../lib/sanitize';
+import { MFAVerify } from '../components/MFAVerify';
+import { MFASetup } from '../components/MFASetup';
+import { MFASettings } from '../components/MFASettings';
 
 interface AdminProps {
   isAuthenticated: boolean;
@@ -14,7 +17,7 @@ interface AdminProps {
 }
 
 export function Admin({ isAuthenticated, onAuthChange }: AdminProps) {
-  const [activeTab, setActiveTab] = useState<'projects' | 'reviews' | 'settings' | 'metrics' | 'leads'>('projects');
+  const [activeTab, setActiveTab] = useState<'projects' | 'reviews' | 'settings' | 'metrics' | 'leads' | 'security'>('projects');
   const [projects, setProjects] = useState<Project[]>([]);
   const [editingProject, setEditingProject] = useState<Project | null>(null);
   const [showProjectForm, setShowProjectForm] = useState(false);
@@ -29,12 +32,64 @@ export function Admin({ isAuthenticated, onAuthChange }: AdminProps) {
   const [mdImageUrl, setMdImageUrl] = useState('');
   const [mdImageUrlInput, setMdImageUrlInput] = useState('');
 
+  // MFA states
+  const [mfaRequired, setMfaRequired] = useState(false);
+  const [mfaFactorId, setMfaFactorId] = useState('');
+  const [showMfaSetup, setShowMfaSetup] = useState(false);
+  const [pendingAuth, setPendingAuth] = useState(false);
+
+  useEffect(() => {
+    async function checkMfaStatus() {
+      if (isAuthenticated && !pendingAuth) {
+        // Check if user has MFA enrolled but hasn't verified yet
+        try {
+          const { data: factorsData } = await supabase.auth.mfa.listFactors();
+          const verifiedFactors = factorsData?.all?.filter(f => f.status === 'verified') || [];
+
+          // If user has MFA but we're not in pending state, they might have refreshed
+          // In this case, we should require MFA verification
+          if (verifiedFactors.length > 0 && !mfaFactorId) {
+            // User has MFA enabled - check AAL level
+            const { data: { session } } = await supabase.auth.getSession();
+            const aal = session?.aal;
+
+            // If aal is 'aal1', user logged in with password but hasn't done MFA
+            // If aal is 'aal2', user has completed MFA
+            if (aal === 'aal1') {
+              setMfaFactorId(verifiedFactors[0].id);
+              setMfaRequired(true);
+              setPendingAuth(true);
+              return; // Don't load data yet
+            }
+          }
+        } catch (error) {
+          console.error('Error checking MFA status:', error);
+        }
+      }
+
+      if (isAuthenticated && !pendingAuth) {
+        fetchProjects();
+        fetchCeoImage();
+        fetchMdImage();
+      }
+    }
+
+    checkMfaStatus();
+  }, [isAuthenticated, pendingAuth]);
+
+  // Clear login credentials when auth state changes or component unmounts
   useEffect(() => {
     if (isAuthenticated) {
-      fetchProjects();
-      fetchCeoImage();
-      fetchMdImage();
+      // Clear credentials when successfully authenticated
+      setLoginEmail('');
+      setLoginPassword('');
     }
+
+    return () => {
+      // Clear credentials on component unmount
+      setLoginEmail('');
+      setLoginPassword('');
+    };
   }, [isAuthenticated]);
 
   async function fetchCeoImage() {
@@ -117,22 +172,84 @@ export function Admin({ isAuthenticated, onAuthChange }: AdminProps) {
     e.preventDefault();
     setIsLoading(true);
 
-    const { error } = await supabase.auth.signInWithPassword({
-      email: loginEmail,
-      password: loginPassword,
-    });
+    try {
+      const { error } = await supabase.auth.signInWithPassword({
+        email: loginEmail,
+        password: loginPassword,
+      });
 
-    setIsLoading(false);
+      if (error) throw error;
 
-    if (error) {
+      // Clear password immediately after login attempt for security
+      setLoginPassword('');
+
+      // Check if MFA is required
+      const { data: factorsData, error: factorsError } = await supabase.auth.mfa.listFactors();
+
+      if (factorsError) throw factorsError;
+
+      const verifiedFactors = factorsData?.all?.filter(f => f.status === 'verified') || [];
+
+      if (verifiedFactors.length > 0) {
+        // MFA is enabled, require verification
+        setMfaFactorId(verifiedFactors[0].id);
+        setMfaRequired(true);
+        setPendingAuth(true);
+        // Clear email too when going to MFA
+        setLoginEmail('');
+      } else {
+        // No MFA, check if we should prompt for setup
+        setShowMfaSetup(false); // Optional: set to true to force MFA setup
+        showMessage('success', 'Login successful!');
+        setLoginEmail(''); // Clear email on successful login
+        onAuthChange();
+      }
+    } catch (error: any) {
       showMessage('error', 'Invalid credentials. Please try again.');
-    } else {
-      showMessage('success', 'Login successful!');
-      onAuthChange();
+      // Clear password on failed login
+      setLoginPassword('');
+    } finally {
+      setIsLoading(false);
     }
   }
 
+  function handleMfaSuccess() {
+    setMfaRequired(false);
+    setPendingAuth(false);
+    showMessage('success', 'Login successful!');
+    onAuthChange();
+  }
+
+  async function handleMfaCancel() {
+    setMfaRequired(false);
+    setPendingAuth(false);
+    setMfaFactorId('');
+    await supabase.auth.signOut();
+    showMessage('error', 'Login cancelled. Please try again.');
+  }
+
+  function handleMfaSetupComplete() {
+    setShowMfaSetup(false);
+    showMessage('success', 'MFA enabled successfully! Login complete.');
+    onAuthChange();
+  }
+
+  function handleMfaSetupSkip() {
+    setShowMfaSetup(false);
+    showMessage('success', 'Login successful! You can enable MFA later in Security settings.');
+    onAuthChange();
+  }
+
   async function handleLogout() {
+    // Clear MFA states before logging out
+    setMfaRequired(false);
+    setPendingAuth(false);
+    setMfaFactorId('');
+
+    // Clear login credentials from state
+    setLoginEmail('');
+    setLoginPassword('');
+
     await supabase.auth.signOut();
     onAuthChange();
     showMessage('success', 'Logged out successfully');
@@ -286,7 +403,34 @@ export function Admin({ isAuthenticated, onAuthChange }: AdminProps) {
     setTimeout(() => setMessage(null), 5000);
   }
 
+  // Show MFA verification if required (even if technically authenticated)
+  if (mfaRequired && mfaFactorId && pendingAuth) {
+    return (
+      <div className="min-h-screen pt-20 md:pt-24 pb-20 flex items-center justify-center">
+        <MFAVerify
+          factorId={mfaFactorId}
+          onSuccess={handleMfaSuccess}
+          onCancel={handleMfaCancel}
+        />
+      </div>
+    );
+  }
+
+  // Show MFA setup if prompted (even if technically authenticated)
+  if (showMfaSetup && pendingAuth) {
+    return (
+      <div className="min-h-screen pt-20 md:pt-24 pb-20 flex items-center justify-center">
+        <MFASetup
+          onComplete={handleMfaSetupComplete}
+          onSkip={handleMfaSetupSkip}
+        />
+      </div>
+    );
+  }
+
+  // Show login form if not authenticated and not pending MFA
   if (!isAuthenticated) {
+    // Show login form
     return (
       <div className="min-h-screen pt-20 md:pt-24 pb-20 flex items-center justify-center">
         <div className="w-full max-w-md">
@@ -309,14 +453,19 @@ export function Admin({ isAuthenticated, onAuthChange }: AdminProps) {
               </div>
             )}
 
-            <form onSubmit={handleLogin} className="space-y-6">
+            <form onSubmit={handleLogin} className="space-y-6" autoComplete="off">
               <div>
                 <label className="block text-sm font-medium mb-2">Email</label>
                 <input
                   type="email"
+                  name="email"
                   value={loginEmail}
                   onChange={(e) => setLoginEmail(e.target.value)}
                   required
+                  autoComplete="off"
+                  autoCorrect="off"
+                  autoCapitalize="off"
+                  spellCheck="false"
                   className="w-full px-4 py-3 border border-gray-300 rounded focus:ring-2 focus:ring-[#2DB6E8] focus:border-transparent"
                   placeholder="admin@padmalaya.com"
                 />
@@ -326,9 +475,14 @@ export function Admin({ isAuthenticated, onAuthChange }: AdminProps) {
                 <label className="block text-sm font-medium mb-2">Password</label>
                 <input
                   type="password"
+                  name="password"
                   value={loginPassword}
                   onChange={(e) => setLoginPassword(e.target.value)}
                   required
+                  autoComplete="new-password"
+                  autoCorrect="off"
+                  autoCapitalize="off"
+                  spellCheck="false"
                   className="w-full px-4 py-3 border border-gray-300 rounded focus:ring-2 focus:ring-[#2DB6E8] focus:border-transparent"
                   placeholder="Enter your password"
                 />
@@ -378,10 +532,10 @@ export function Admin({ isAuthenticated, onAuthChange }: AdminProps) {
         )}
 
         <div className="mb-8 border-b border-gray-200">
-          <div className="flex space-x-8">
+          <div className="flex space-x-8 overflow-x-auto">
             <button
               onClick={() => setActiveTab('projects')}
-              className={`pb-4 px-2 font-medium transition-colors ${
+              className={`pb-4 px-2 font-medium transition-colors whitespace-nowrap ${
                 activeTab === 'projects'
                   ? 'text-[#2DB6E8] border-b-2 border-[#2DB6E8]'
                   : 'text-[#2F6F6B]/60 hover:text-[#2F6F6B]'
@@ -391,7 +545,7 @@ export function Admin({ isAuthenticated, onAuthChange }: AdminProps) {
             </button>
             <button
               onClick={() => setActiveTab('reviews')}
-              className={`pb-4 px-2 font-medium transition-colors ${
+              className={`pb-4 px-2 font-medium transition-colors whitespace-nowrap ${
                 activeTab === 'reviews'
                   ? 'text-[#2DB6E8] border-b-2 border-[#2DB6E8]'
                   : 'text-[#2F6F6B]/60 hover:text-[#2F6F6B]'
@@ -401,7 +555,7 @@ export function Admin({ isAuthenticated, onAuthChange }: AdminProps) {
             </button>
             <button
               onClick={() => setActiveTab('metrics')}
-              className={`pb-4 px-2 font-medium transition-colors ${
+              className={`pb-4 px-2 font-medium transition-colors whitespace-nowrap ${
                 activeTab === 'metrics'
                   ? 'text-[#2DB6E8] border-b-2 border-[#2DB6E8]'
                   : 'text-[#2F6F6B]/60 hover:text-[#2F6F6B]'
@@ -411,7 +565,7 @@ export function Admin({ isAuthenticated, onAuthChange }: AdminProps) {
             </button>
             <button
               onClick={() => setActiveTab('leads')}
-              className={`pb-4 px-2 font-medium transition-colors ${
+              className={`pb-4 px-2 font-medium transition-colors whitespace-nowrap ${
                 activeTab === 'leads'
                   ? 'text-[#2DB6E8] border-b-2 border-[#2DB6E8]'
                   : 'text-[#2F6F6B]/60 hover:text-[#2F6F6B]'
@@ -421,13 +575,23 @@ export function Admin({ isAuthenticated, onAuthChange }: AdminProps) {
             </button>
             <button
               onClick={() => setActiveTab('settings')}
-              className={`pb-4 px-2 font-medium transition-colors ${
+              className={`pb-4 px-2 font-medium transition-colors whitespace-nowrap ${
                 activeTab === 'settings'
                   ? 'text-[#2DB6E8] border-b-2 border-[#2DB6E8]'
                   : 'text-[#2F6F6B]/60 hover:text-[#2F6F6B]'
               }`}
             >
               Settings
+            </button>
+            <button
+              onClick={() => setActiveTab('security')}
+              className={`pb-4 px-2 font-medium transition-colors whitespace-nowrap ${
+                activeTab === 'security'
+                  ? 'text-[#2DB6E8] border-b-2 border-[#2DB6E8]'
+                  : 'text-[#2F6F6B]/60 hover:text-[#2F6F6B]'
+              }`}
+            >
+              Security
             </button>
           </div>
         </div>
@@ -439,6 +603,11 @@ export function Admin({ isAuthenticated, onAuthChange }: AdminProps) {
         ) : activeTab === 'metrics' ? (
           <div className="max-w-2xl">
             <MetricsManager />
+          </div>
+        ) : activeTab === 'security' ? (
+          <div className="max-w-2xl">
+            <h2 className="font-serif text-2xl font-light mb-6">Security Settings</h2>
+            <MFASettings onMessage={showMessage} />
           </div>
         ) : activeTab === 'settings' ? (
           <div className="max-w-2xl">
