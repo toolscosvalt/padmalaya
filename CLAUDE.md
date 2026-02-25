@@ -74,6 +74,14 @@ Vercel
 
 Navigation uses `onNavigate` callback prop drilling. No React Context.
 
+### Global Components
+
+`App.tsx` renders two components on every public page (hidden on admin):
+- **Footer** — contact info from `site_settings` (`contactInfo` state)
+- **WhatsAppFloat** — floating WhatsApp CTA button, also driven by `contactInfo.whatsapp`
+
+Both share the same `contactInfo` state fetched once in `App.tsx` — zero duplicate Supabase queries. The WhatsApp URL and default message are centralized in `src/lib/utils.ts` (`getWhatsAppUrl()` + `WHATSAPP_DEFAULT_MESSAGE`).
+
 ### State Management
 
 No state library. `useState` throughout. The Admin page alone has 19+ `useState` calls.
@@ -96,6 +104,7 @@ src/
 │   ├── Footer.tsx           # 84 lines — footer with contact info
 │   ├── AnimatedSection.tsx  # 25 lines — IntersectionObserver wrapper
 │   ├── ImageReveal.tsx      # 20 lines — image animation wrapper
+│   ├── WhatsAppFloat.tsx    # 32 lines — global floating WhatsApp CTA button
 │   └── SessionTimeoutWarning.tsx # 132 lines — EXISTS BUT NOT IMPORTED
 ├── pages/
 │   ├── Home.tsx             # 302 lines — hero, metrics, featured projects, reviews
@@ -109,7 +118,7 @@ src/
 │   ├── supabase.ts          # 11 lines — Supabase client init
 │   ├── sanitize.ts          # 140 lines — 9 DOMPurify sanitization functions
 │   ├── types.ts             # 93 lines — all TypeScript interfaces
-│   ├── utils.ts             # 18 lines — Google Drive URL converter
+│   ├── utils.ts             # 25 lines — Google Drive URL converter + WhatsApp URL utility
 │   └── __tests__/
 │       └── sanitize.test.ts # 309 lines — manual browser-console test suite
 ├── hooks/
@@ -463,6 +472,8 @@ SSL automatic via Vercel.
 | `src/lib/sanitize.ts` | All XSS sanitization functions |
 | `src/lib/types.ts` | All TypeScript interfaces |
 | `src/lib/supabase.ts` | Supabase client initialization |
+| `src/lib/utils.ts` | Google Drive URL converter + `getWhatsAppUrl()` utility + `WHATSAPP_DEFAULT_MESSAGE` constant |
+| `src/components/WhatsAppFloat.tsx` | Global floating WhatsApp CTA button (visible on all public pages, hidden on admin) |
 | `supabase/functions/submit-lead/index.ts` | Lead submission Edge Function (386 lines) |
 | `vercel.json` | Deployment config, security headers, routing |
 | `supabase/config.toml` | Local Supabase config (MFA enabled) |

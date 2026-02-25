@@ -1,3 +1,10 @@
+export const WHATSAPP_DEFAULT_MESSAGE = 'Hey, I am interested in learning more about Padmalaya Group properties. Could you please share more details?';
+
+export function getWhatsAppUrl(whatsappNumber: string, message: string = WHATSAPP_DEFAULT_MESSAGE): string {
+  const phoneNumber = whatsappNumber.replace(/[^0-9]/g, '');
+  return `https://wa.me/${phoneNumber}?text=${encodeURIComponent(message)}`;
+}
+
 export function convertGoogleDriveUrl(url: string): string {
   if (!url) return '';
 

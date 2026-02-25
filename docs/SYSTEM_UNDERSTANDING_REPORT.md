@@ -127,7 +127,8 @@ This app does **NOT** use React Router despite the CLAUDE.md claiming it does. I
      ↓
 3. App.tsx: fetches contactInfo from site_settings (Supabase)
      ↓
-4. Renders Navigation + page component + Footer
+4. Renders Navigation + page component + Footer + WhatsAppFloat
+   (Footer and WhatsAppFloat both reuse the same contactInfo state — zero duplicate fetches)
      ↓
 5. Page components fetch their data from Supabase:
    - Home: hero settings, metrics, featured projects, reviews
@@ -152,7 +153,8 @@ This app does **NOT** use React Router despite the CLAUDE.md claiming it does. I
 | **MFA** | MFASetup, MFAVerify, MFASettings | 561 | Multi-factor authentication |
 | **Animation** | AnimatedSection, ImageReveal, useIntersectionObserver | 88 | Scroll-triggered animations |
 | **Security** | sanitize.ts, sanitize.test.ts | 449 | XSS protection + manual tests |
-| **Config** | supabase.ts, utils.ts, types.ts | 118 | Client setup, helpers, type defs |
+| **Global CTA** | WhatsAppFloat.tsx | 32 | Floating WhatsApp button on all public pages, driven by `contactInfo.whatsapp` from `site_settings` |
+| **Config** | supabase.ts, utils.ts, types.ts | 125 | Client setup, helpers (incl. `getWhatsAppUrl()` + `WHATSAPP_DEFAULT_MESSAGE`), type defs |
 
 ### Backend (1 Edge Function, 386 lines)
 
@@ -313,7 +315,7 @@ This app does **NOT** use React Router despite the CLAUDE.md claiming it does. I
 | `src/lib/types.ts` | 93 | TypeScript interfaces for all entities |
 | `src/lib/supabase.ts` | 11 | Supabase client initialization |
 | `src/lib/sanitize.ts` | 140 | XSS protection — 9 sanitization functions |
-| `src/lib/utils.ts` | 18 | Google Drive URL conversion utility |
+| `src/lib/utils.ts` | 25 | Google Drive URL converter + `getWhatsAppUrl()` utility + `WHATSAPP_DEFAULT_MESSAGE` constant |
 | `src/lib/__tests__/sanitize.test.ts` | 309 | Manual test suite for sanitization |
 | `src/hooks/useIntersectionObserver.ts` | 43 | Scroll-triggered animation hook |
 | `src/hooks/useSessionTimeout.ts` | 232 | Admin session timeout (NOT WIRED) |
@@ -329,6 +331,7 @@ This app does **NOT** use React Router despite the CLAUDE.md claiming it does. I
 | `src/components/MFASetup.tsx` | 243 | MFA enrollment wizard |
 | `src/components/MFAVerify.tsx` | 129 | MFA verification screen |
 | `src/components/MFASettings.tsx` | 189 | MFA management UI |
+| `src/components/WhatsAppFloat.tsx` | 32 | Global floating WhatsApp CTA button (hidden on admin page) |
 | `src/pages/Home.tsx` | 302 | Landing page with hero, metrics, featured projects, reviews |
 | `src/pages/Projects.tsx` | 140 | Projects gallery with filter |
 | `src/pages/ProjectDetail.tsx` | 323 | Single project with lightbox gallery |
@@ -384,3 +387,5 @@ This app does **NOT** use React Router despite the CLAUDE.md claiming it does. I
 This is a **small but well-secured SPA** (~5,600 lines frontend, 386 lines backend, 5 database tables) with a strong multi-layered security posture (sanitization, CAPTCHA, rate limiting, RLS, MFA, CSP headers). The primary structural weakness is the **monolithic Admin.tsx** (1,099 lines, 76+ state variables) and **significant documentation drift** (CLAUDE.md describes an architecture that doesn't match the actual code — React Router, React Hook Form, code splitting, and custom Tailwind theme are all documented but absent). The biggest operational risk is **Google Drive as an image CDN** for a production real estate website.
 
 **Schema Evolution (2026-02-26):** The `projects` table was extended with four new nullable columns: `rera_number`, `flat_config`, `builtup_area`, and `towers`. These support RERA compliance display and enhanced project detail information. All columns are nullable for backward compatibility with existing data.
+
+**Global WhatsApp CTA (2026-02-26):** A floating WhatsApp button (`WhatsAppFloat.tsx`, 32 lines) was added as a global component rendered on all public pages. It reuses the existing `contactInfo` state from `App.tsx` (fetched from `site_settings.contact.whatsapp`), so there are zero additional network requests. The WhatsApp URL generation and default message were extracted to shared utilities in `src/lib/utils.ts` (`getWhatsAppUrl()` + `WHATSAPP_DEFAULT_MESSAGE`), which `Contact.tsx` also uses instead of its previous hardcoded logic. No new dependencies were added.

@@ -25,7 +25,7 @@
 | # | Issue | Impact | Location |
 |---|-------|--------|----------|
 | 1 | **No lead capture on Home page** | Users must navigate to Contact to enquire. Home is your highest-traffic page — every visitor who leaves without seeing a form is a lost lead. | `Home.tsx` |
-| 2 | **No floating WhatsApp/CTA button** | This is table stakes for Indian real estate. Buyers expect instant WhatsApp chat. Your WhatsApp button is buried on the Contact page only. | Missing globally |
+| 2 | ~~**No floating WhatsApp/CTA button**~~ | **RESOLVED (2026-02-26):** Global floating WhatsApp CTA added via `WhatsAppFloat.tsx` (32 lines). Fixed bottom-right, 56px circle, WhatsApp green (#25D366), z-40. Visible on all public pages, hidden on admin. Reuses existing `contactInfo` state from `App.tsx` — zero additional API calls, no new dependencies, no layout shift, no performance impact. Accessible: `aria-label`, focus ring, keyboard navigable. WhatsApp URL utility (`getWhatsAppUrl()`) and default message (`WHATSAPP_DEFAULT_MESSAGE`) centralized in `src/lib/utils.ts`; `Contact.tsx` refactored to share the same utility. | `WhatsAppFloat.tsx`, `App.tsx`, `utils.ts`, `Contact.tsx` |
 | 3 | **7-field lead form is too long** | Industry data: every field beyond 3 drops conversion ~10%. You require name, email, phone, contact time, interest, heard-from, message + CAPTCHA. That's 8 interactions before submit. | `LeadForm.tsx` |
 | 4 | **No loading states / skeleton screens** | Every page fetches from Supabase on mount. Until data arrives, users see a blank white screen or just "Loading..." text. On slow 3G (common in India), this is 3-5 seconds of nothing. | All pages |
 | 5 | **Stock hero image from Pexels** | The most important visual on the site is `pexels-photo-1732414.jpeg` — a generic building photo. This destroys trust for premium real estate. Must be your own flagship project. | `Home.tsx:106` |
@@ -179,7 +179,7 @@ And remove the `@import` from `index.css:1`.
 ### Mobile-Specific CTAs (Missing)
 
 - **Click-to-call button** — should be a sticky bottom bar on mobile project pages
-- **WhatsApp floating action button** — bottom-right, always visible
+- ~~**WhatsApp floating action button** — bottom-right, always visible~~ **DONE (2026-02-26)** — `WhatsAppFloat.tsx`
 - **Share button** on project detail — native Web Share API for mobile
 
 ---
@@ -190,7 +190,7 @@ And remove the `@import` from `index.css:1`.
 
 ```
 HOME (100% traffic)
-  ↓ No form, no CTA except "Explore Projects" → DROP: ~60%
+  ↓ No form, but WhatsApp FAB now visible (2026-02-26). Still no inline CTA except "Explore Projects" → DROP: ~45%
 PROJECTS (40%)
   ↓ No CTA on cards, no "Enquire about this project" → DROP: ~70%
 PROJECT DETAIL (12%)
@@ -205,7 +205,7 @@ LEAD CAPTURED (0.8%)
 | Change | Expected Impact | Effort |
 |--------|-----------------|--------|
 | **Add a compact lead form to the Home page** (name + phone + interest = 3 fields) | +150-300% leads | Medium |
-| **Add floating WhatsApp button globally** | +30-50% WhatsApp leads | Low |
+| ~~**Add floating WhatsApp button globally**~~ | **DONE (2026-02-26)** — `WhatsAppFloat.tsx`, global on all public pages, no perf degradation | Low |
 | **Add "Enquire Now" CTA on every project card** | +40% click-through to contact | Low |
 | **Add "Schedule Site Visit" on ProjectDetail** | Captures highest-intent visitors | Low |
 | **Reduce form to 3 required fields** (name, phone, interest) + optional expand | +50-80% form completions | Medium |
@@ -258,11 +258,11 @@ This alone typically doubles form completion rates in real estate.
 
 | Priority | Items | Impact |
 |----------|-------|--------|
-| **P0 — Do This Week** | Floating WhatsApp button, lead form on Home page, replace stock hero image, add `loading="lazy"` to images, add `React.lazy()` code splitting | Conversion + Performance |
+| **P0 — Do This Week** | ~~Floating WhatsApp button~~ (DONE 2026-02-26), lead form on Home page, replace stock hero image, add `loading="lazy"` to images, add `React.lazy()` code splitting | Conversion + Performance |
 | **P1 — Do This Month** | Reduce form fields, fix Google Fonts loading, add skeleton screens, mobile nav improvements, add RERA numbers, preconnect hints | Trust + Mobile UX |
 | **P2 — Next Sprint** | Migrate images off Google Drive, add project CTAs, site visit scheduling, responsive images, progressive form disclosure | Conversion + Speed |
 | **P3 — Roadmap** | EMI calculator, project map, virtual tours, blog/SEO, comparison feature, video hero | Engagement + SEO |
 
 ---
 
-> **Bottom Line:** The single highest-ROI change is **adding a 3-field lead form to the Home page + a floating WhatsApp button**. These two changes alone can realistically 2-3x lead volume with minimal development effort.
+> **Bottom Line:** The floating WhatsApp button is now live globally (2026-02-26). The remaining single highest-ROI change is **adding a 3-field lead form to the Home page**. This change alone can realistically 2-3x lead volume with minimal development effort.

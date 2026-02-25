@@ -8,6 +8,7 @@ import { ProjectDetail } from './pages/ProjectDetail';
 import { Contact } from './pages/Contact';
 import { Admin } from './pages/Admin';
 import { NotFound } from './pages/NotFound';
+import { WhatsAppFloat } from './components/WhatsAppFloat';
 import { supabase } from './lib/supabase';
 import { ContactSettings } from './lib/types';
 
@@ -119,6 +120,7 @@ function App() {
       <Navigation currentPage={currentPage} onNavigate={handleNavigate} />
       <main>{renderPage()}</main>
       <Footer contactInfo={contactInfo} />
+      {currentPage !== 'admin' && <WhatsAppFloat contactInfo={contactInfo} />}
     </div>
   );
 }

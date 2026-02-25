@@ -235,7 +235,7 @@ PHASE 3 — IMAGE PIPELINE (8-12 hours, additional 15%)
 
 | # | Fix | Impact | Effort |
 |---|-----|--------|--------|
-| UX1 | **Add floating WhatsApp button (global)** | +30-50% WhatsApp leads | 2h |
+| UX1 | ~~**Add floating WhatsApp button (global)**~~ | **DONE** (2026-02-26) — `WhatsAppFloat.tsx` on all public pages, reuses `contactInfo` state, no new deps | 2h |
 | UX2 | **Add 3-field lead form to Home page** (name, phone, interest) | +150-300% leads | 4h |
 | UX3 | **Replace stock hero image** with real project photo | Trust + professionalism | 1h (needs photo) |
 | UX4 | ~~**Add RERA numbers** to project cards and detail pages~~ | **DONE** (2026-02-26) — Schema, admin form, detail page, and card display implemented. Needs actual RERA data entry. | 1h (needs data) |
@@ -271,7 +271,7 @@ PHASE 3 — IMAGE PIPELINE (8-12 hours, additional 15%)
 BEFORE (Current)                    AFTER (Post Phase 2)
 ─────────────────────────           ─────────────────────────
 HOME (100%)                         HOME (100%)
-  No form, no CTA                     3-field form + WhatsApp FAB
+  No form, WhatsApp FAB ✓ live        3-field form + WhatsApp FAB ✓
   ↓ DROP: ~60%                        ↓ DROP: ~25%
 PROJECTS (40%)                      PROJECTS (75%)
   No CTA on cards                     "Enquire Now" on every card
@@ -293,7 +293,7 @@ LEAD CAPTURED (0.8%)                LEAD CAPTURED (15%)
 ## 7. Feature Roadmap
 
 ### Now (Phase 1) — Foundation
-- [ ] Floating WhatsApp button (global)
+- [x] ~~Floating WhatsApp button (global)~~ **DONE (2026-02-26)**
 - [ ] Home page lead capture form (3 fields)
 - [ ] Skeleton loading screens
 - [ ] Error boundary component
@@ -330,6 +330,7 @@ LEAD CAPTURED (0.8%)                LEAD CAPTURED (15%)
 
 ### Completed Features
 - [x] **Project detail fields** (2026-02-26) — Added RERA number, flat configuration, built-up area, and towers fields to projects schema. Admin CRUD, project detail display, and project card display all updated. Architectural impact: LOW (additive schema change, nullable columns, no breaking changes).
+- [x] **Global floating WhatsApp CTA** (2026-02-26) — Added `WhatsAppFloat.tsx` (32 lines) rendered on all public pages, hidden on admin. Reuses existing `contactInfo` state from `App.tsx` (zero additional API calls). Extracted shared `getWhatsAppUrl()` + `WHATSAPP_DEFAULT_MESSAGE` to `src/lib/utils.ts`; `Contact.tsx` refactored to use the shared utility. No new dependencies. Architectural impact: LOW. Conversion impact: HIGH (+30-50% WhatsApp leads expected).
 
 ---
 
@@ -393,7 +394,7 @@ PHASE 3
 | 5 | **Add `loading="lazy"` to all images** | Performance | 15m | Reduces initial page weight |
 | 6 | **Move Google Fonts to `<link preload>`** | Performance | 15m | Eliminates render-blocking |
 | 7 | **Disable production source maps** — `build.sourcemap: false` | Security + Size | 5m | Hides source code + smaller build |
-| 8 | **Floating WhatsApp button** | Conversion | 1h | +30-50% WhatsApp leads |
+| 8 | ~~**Floating WhatsApp button**~~ | Conversion | **DONE** | **DONE** (2026-02-26) — `WhatsAppFloat.tsx` |
 | 9 | **Password policy: 12 chars + complexity** | Security | 5m | config.toml change only |
 | 10 | **Add preconnect hints** to index.html | Performance | 10m | Faster resource loading |
 | 11 | **Create .env.example** | DX | 15m | Unblocks new developer onboarding |
@@ -503,7 +504,7 @@ PHASE 3
 
 #### Conversion Sprint (Day 4-5, ~6 hours)
 ```
-□ Add floating WhatsApp button (global, bottom-right)
+☑ Add floating WhatsApp button (global, bottom-right) — DONE (2026-02-26)
 □ Add compact 3-field lead form to Home page
 □ Add skeleton loading screens to replace blank states
 □ Add error boundary component wrapping the app
@@ -521,7 +522,7 @@ PHASE 3
 - Zero critical vulnerabilities
 - All OWASP Top 10 categories at SECURE or IMPROVED
 - Home page has lead capture form
-- WhatsApp button visible on all pages
+- ~~WhatsApp button visible on all pages~~ DONE (2026-02-26)
 - Bundle split into at least 3 chunks
 - CLAUDE.md matches reality
 
@@ -686,7 +687,7 @@ PHASE 3
 - [ ] All `<img>` tags (except hero) have `loading="lazy"`
 
 ### Conversion Checklist (Phase 1 Sprint)
-- [ ] Floating WhatsApp button visible on all pages (bottom-right, fixed position)
+- [x] Floating WhatsApp button visible on all pages (bottom-right, fixed position) — DONE (2026-02-26)
 - [ ] Home page has a compact lead form (name + phone + interest)
 - [ ] Skeleton loading screens replace all "Loading..." text states
 - [ ] Error boundary wraps the app in `App.tsx`
@@ -705,7 +706,7 @@ Files that will be modified in Phase 1, ordered by risk:
 | `index.html` | Preconnect hints, font loading | LOW | Visual inspection |
 | `index.css` | Remove @import | LOW | Visual inspection (fonts still load) |
 | `package.json` | Name fix, audit fix | LOW | npm install + build |
-| `src/App.tsx` | React.lazy, Suspense, error boundary | MEDIUM | Manual navigation test all routes |
+| `src/App.tsx` | React.lazy, Suspense, error boundary, WhatsAppFloat integration (DONE) | MEDIUM | Manual navigation test all routes |
 | `src/pages/Home.tsx` | Add lead form, skeleton states | MEDIUM | Visual + form submission test |
 | `src/pages/Admin.tsx` | Session timeout, MFA lockout | HIGH | Full admin flow test |
 | `src/components/MFAVerify.tsx` | Brute force lockout | HIGH | Test lockout behavior |
