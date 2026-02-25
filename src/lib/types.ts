@@ -11,6 +11,10 @@ export interface Project {
   year_completed: number | null;
   total_units: number | null;
   total_area: string | null;
+  rera_number: string | null;
+  flat_config: string | null;
+  builtup_area: string | null;
+  towers: string | null;
   display_order: number;
   is_featured: boolean;
   created_at: string;

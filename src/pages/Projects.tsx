@@ -121,6 +121,11 @@ export function Projects({ onNavigate }: ProjectsProps) {
                         Completed in {project.year_completed}
                       </p>
                     )}
+                    {project.rera_number && (
+                      <p className="text-xs text-[#2F6F6B]/50">
+                        RERA: {project.rera_number}
+                      </p>
+                    )}
                   </div>
                 </button>
               </ImageReveal>

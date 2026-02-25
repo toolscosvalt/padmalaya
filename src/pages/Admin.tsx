@@ -313,6 +313,10 @@ export function Admin({ isAuthenticated, onAuthChange }: AdminProps) {
       year_completed: formData.get('year_completed') ? parseInt(formData.get('year_completed') as string) : null,
       total_units: formData.get('total_units') ? parseInt(formData.get('total_units') as string) : null,
       total_area: formData.get('total_area') ? sanitizeInput(formData.get('total_area') as string) : null,
+      rera_number: formData.get('rera_number') ? sanitizeInput(formData.get('rera_number') as string) : null,
+      flat_config: formData.get('flat_config') ? sanitizeInput(formData.get('flat_config') as string) : null,
+      builtup_area: formData.get('builtup_area') ? sanitizeInput(formData.get('builtup_area') as string) : null,
+      towers: formData.get('towers') ? sanitizeInput(formData.get('towers') as string) : null,
       display_order: formData.get('display_order') ? parseInt(formData.get('display_order') as string) : 0,
       is_featured: formData.get('is_featured') === 'true',
     };
@@ -877,6 +881,52 @@ export function Admin({ isAuthenticated, onAuthChange }: AdminProps) {
                     placeholder="e.g., 1,10,000 sq ft (40 cottah)"
                     className="w-full px-4 py-2 border border-gray-300 rounded"
                   />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium mb-1">RERA Number</label>
+                  <input
+                    type="text"
+                    name="rera_number"
+                    defaultValue={editingProject?.rera_number || ''}
+                    placeholder="e.g., P02400006543"
+                    className="w-full px-4 py-2 border border-gray-300 rounded"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium mb-1">Flat Configuration</label>
+                  <input
+                    type="text"
+                    name="flat_config"
+                    defaultValue={editingProject?.flat_config || ''}
+                    placeholder="e.g., 2BHK, 3BHK, 4BHK"
+                    className="w-full px-4 py-2 border border-gray-300 rounded"
+                  />
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium mb-1">Built-up Area</label>
+                    <input
+                      type="text"
+                      name="builtup_area"
+                      defaultValue={editingProject?.builtup_area || ''}
+                      placeholder="e.g., 1200-2400 sq ft"
+                      className="w-full px-4 py-2 border border-gray-300 rounded"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium mb-1">Towers</label>
+                    <input
+                      type="text"
+                      name="towers"
+                      defaultValue={editingProject?.towers || ''}
+                      placeholder="e.g., 2 Towers"
+                      className="w-full px-4 py-2 border border-gray-300 rounded"
+                    />
+                  </div>
                 </div>
 
                 <div className="grid grid-cols-2 gap-4">

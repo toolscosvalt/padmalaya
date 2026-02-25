@@ -29,14 +29,14 @@
 | 3 | **7-field lead form is too long** | Industry data: every field beyond 3 drops conversion ~10%. You require name, email, phone, contact time, interest, heard-from, message + CAPTCHA. That's 8 interactions before submit. | `LeadForm.tsx` |
 | 4 | **No loading states / skeleton screens** | Every page fetches from Supabase on mount. Until data arrives, users see a blank white screen or just "Loading..." text. On slow 3G (common in India), this is 3-5 seconds of nothing. | All pages |
 | 5 | **Stock hero image from Pexels** | The most important visual on the site is `pexels-photo-1732414.jpeg` — a generic building photo. This destroys trust for premium real estate. Must be your own flagship project. | `Home.tsx:106` |
-| 6 | **No RERA number displayed** | Legal requirement under RERA Act 2016 for Indian real estate. Absence is both a compliance risk and a trust signal failure. | Missing everywhere |
+| 6 | ~~**No RERA number displayed**~~ | **RESOLVED (2026-02-26):** RERA number field added to DB schema, admin form, project detail page, and project listing cards. Actual RERA data still needs to be entered by admin. | `ProjectDetail.tsx`, `Projects.tsx`, `Admin.tsx` |
 
 ### High
 
 | # | Issue | Impact | Location |
 |---|-------|--------|----------|
 | 7 | **No price indicators anywhere** | Real estate buyers filter by budget. No price range, no "Starting from X", no EMI estimates. Users can't self-qualify, leading to unqualified leads and wasted sales time. | All project pages |
-| 8 | **No floor plans or configurations** | Buyers need BHK options, sq ft, and layouts. Without this, your site is a photo gallery, not a sales tool. | `ProjectDetail.tsx` |
+| 8 | **No floor plans or configurations** | Buyers need BHK options, sq ft, and layouts. **Partial fix (2026-02-26):** flat_config and builtup_area fields now available. Floor plan images/PDFs still needed. | `ProjectDetail.tsx` |
 | 9 | **About page makes 3 separate Supabase queries** | `fetchAboutData()`, `fetchCeoImage()`, `fetchMdImage()` — 3 serial network requests that could be 1 batched query. Slows TTI. | `About.tsx:16-50` |
 | 10 | **No breadcrumbs on project detail** | User lands on a project from search/share, has no context of where they are in the site hierarchy. "Back to Projects" button is positioned inside the hero image and easy to miss. | `ProjectDetail.tsx` |
 | 11 | **Mobile menu has no backdrop/animation** | Opens abruptly, no overlay to indicate modal state, no transition. Feels unfinished. | `Navigation.tsx:84-101` |
@@ -66,7 +66,7 @@
 
 ### Trust Signals Missing
 
-- RERA registration number on every project card
+- ~~RERA registration number on every project card~~ **DONE (2026-02-26)**
 - "ISO Certified" / "CREDAI Member" badges (if applicable)
 - Total sq ft delivered counter
 - Years in business badge in the nav area

@@ -2,7 +2,7 @@
 
 **Date:** 2026-02-26
 **Analyst:** Principal Software Architect Review
-**Codebase Size:** ~5,630 lines frontend, 386 lines backend, 13 migrations, 5 tables
+**Codebase Size:** ~5,630 lines frontend, 386 lines backend, 16 migrations, 5 tables
 
 ---
 
@@ -160,7 +160,7 @@ This app does **NOT** use React Router despite the CLAUDE.md claiming it does. I
 |--------|---------------|
 | **submit-lead** | CORS, validation, CAPTCHA verify, rate limiting, DB insert, Google Sheets webhook |
 
-### Database (5 tables, 13 migrations)
+### Database (5 tables, 16 migrations)
 
 | Table | Purpose | RLS |
 |-------|---------|-----|
@@ -310,7 +310,7 @@ This app does **NOT** use React Router despite the CLAUDE.md claiming it does. I
 | `src/App.tsx` | 127 | Main app router, manages navigation & auth state |
 | `src/index.css` | 155 | Global styles, Tailwind imports, animations |
 | `src/vite-env.d.ts` | 1 | Vite type definitions |
-| `src/lib/types.ts` | 89 | TypeScript interfaces for all entities |
+| `src/lib/types.ts` | 93 | TypeScript interfaces for all entities |
 | `src/lib/supabase.ts` | 11 | Supabase client initialization |
 | `src/lib/sanitize.ts` | 140 | XSS protection — 9 sanitization functions |
 | `src/lib/utils.ts` | 18 | Google Drive URL conversion utility |
@@ -375,9 +375,12 @@ This app does **NOT** use React Router despite the CLAUDE.md claiming it does. I
 | `20260223150512_create_leads_table.sql` | Core leads table + RLS |
 | `20260223151129_add_rate_limiting_to_leads.sql` | source_ip column + rate limit indexes |
 | `20260223151738_add_heard_from_to_leads.sql` | Marketing source tracking column |
+| `20260226200823_add_project_detail_fields.sql` | Add rera_number, flat_config, builtup_area, towers to projects |
 
 ---
 
 ## Summary
 
 This is a **small but well-secured SPA** (~5,600 lines frontend, 386 lines backend, 5 database tables) with a strong multi-layered security posture (sanitization, CAPTCHA, rate limiting, RLS, MFA, CSP headers). The primary structural weakness is the **monolithic Admin.tsx** (1,099 lines, 76+ state variables) and **significant documentation drift** (CLAUDE.md describes an architecture that doesn't match the actual code — React Router, React Hook Form, code splitting, and custom Tailwind theme are all documented but absent). The biggest operational risk is **Google Drive as an image CDN** for a production real estate website.
+
+**Schema Evolution (2026-02-26):** The `projects` table was extended with four new nullable columns: `rera_number`, `flat_config`, `builtup_area`, and `towers`. These support RERA compliance display and enhanced project detail information. All columns are nullable for backward compatibility with existing data.

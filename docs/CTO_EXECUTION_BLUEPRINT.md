@@ -2,7 +2,7 @@
 
 **Date:** 2026-02-26
 **Status:** Consolidated from 4 independent audits (Backend Security, System Architecture, UX/Performance/Conversion, CLAUDE.md)
-**Codebase:** ~5,630 lines frontend | 386 lines backend | 5 tables | 15 migrations | 0 tests
+**Codebase:** ~5,630 lines frontend | 386 lines backend | 5 tables | 16 migrations | 0 tests
 
 ---
 
@@ -51,7 +51,7 @@ After Phase 3:       ██████████████████░�
 | R7 | Session timeout code exists but is NOT wired (or files may have been deleted) | Admin sessions persist indefinitely | CVE-5 |
 | R8 | No automated tests, no CI/CD | Every deploy is a YOLO push to production | System Report |
 | R9 | 11 npm vulnerabilities (3 HIGH) | Known exploitable packages in dependency tree | CVE-7 |
-| R10 | No RERA number displayed | Legal requirement under RERA Act 2016 for Indian real estate | UX Audit |
+| R10 | ~~No RERA number displayed~~ | **RESOLVED** — RERA number field added to projects table, admin form, project detail page, and project cards (2026-02-26) | UX Audit |
 
 ### Tier 3 — Technical Debt (Fix This Month)
 
@@ -238,7 +238,7 @@ PHASE 3 — IMAGE PIPELINE (8-12 hours, additional 15%)
 | UX1 | **Add floating WhatsApp button (global)** | +30-50% WhatsApp leads | 2h |
 | UX2 | **Add 3-field lead form to Home page** (name, phone, interest) | +150-300% leads | 4h |
 | UX3 | **Replace stock hero image** with real project photo | Trust + professionalism | 1h (needs photo) |
-| UX4 | **Add RERA numbers** to project cards and detail pages | Legal compliance + trust | 1h (needs data) |
+| UX4 | ~~**Add RERA numbers** to project cards and detail pages~~ | **DONE** (2026-02-26) — Schema, admin form, detail page, and card display implemented. Needs actual RERA data entry. | 1h (needs data) |
 | UX5 | **Add skeleton loading screens** | Eliminates blank screen on slow networks | 3h |
 
 ### High UX Fixes (Phase 2)
@@ -258,7 +258,7 @@ PHASE 3 — IMAGE PIPELINE (8-12 hours, additional 15%)
 | # | Fix | Impact | Effort |
 |---|-----|--------|--------|
 | UX13 | Add price range indicators to projects | Buyer self-qualification | 2h (needs data) |
-| UX14 | Add floor plans / BHK configurations | High-value sales content | 4h (needs assets) |
+| UX14 | Add floor plans / BHK configurations | High-value sales content. **Partial:** flat_config field added (2026-02-26). Floor plan images/PDFs still needed. | 4h (needs assets) |
 | UX15 | Associate reviews with specific projects | Trust context | 2h |
 | UX16 | Add social media links to footer | Trust signals | 30m |
 | UX17 | Add click-to-call sticky bar on mobile | Mobile conversion | 2h |
@@ -327,6 +327,9 @@ LEAD CAPTURED (0.8%)                LEAD CAPTURED (15%)
 - [ ] Analytics integration (Plausible/PostHog)
 - [ ] Email notifications for new leads
 - [ ] Chatbot / conversational lead capture
+
+### Completed Features
+- [x] **Project detail fields** (2026-02-26) — Added RERA number, flat configuration, built-up area, and towers fields to projects schema. Admin CRUD, project detail display, and project card display all updated. Architectural impact: LOW (additive schema change, nullable columns, no breaking changes).
 
 ---
 

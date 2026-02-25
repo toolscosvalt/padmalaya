@@ -3,7 +3,7 @@ import { AnimatedSection } from '../components/AnimatedSection';
 import { ImageReveal } from '../components/ImageReveal';
 import { supabase } from '../lib/supabase';
 import { Project, ProjectImage } from '../lib/types';
-import { MapPin, Home, Calendar, ArrowLeft, X, ChevronLeft, ChevronRight } from 'lucide-react';
+import { MapPin, Home, Calendar, ArrowLeft, X, ChevronLeft, ChevronRight, Shield, LayoutGrid, Maximize, Building2 } from 'lucide-react';
 import { convertGoogleDriveUrl } from '../lib/utils';
 
 interface ProjectDetailProps {
@@ -124,7 +124,7 @@ export function ProjectDetail({ projectSlug, onNavigate }: ProjectDetailProps) {
 
       <AnimatedSection className="py-12 md:py-16 bg-white">
         <div className="container-custom">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-8">
             <div className="flex items-start space-x-4">
               <MapPin className="text-[#2DB6E8] flex-shrink-0 mt-1" size={24} />
               <div>
@@ -162,7 +162,61 @@ export function ProjectDetail({ projectSlug, onNavigate }: ProjectDetailProps) {
                 </div>
               </div>
             )}
+
+            {project.flat_config && (
+              <div className="flex items-start space-x-4">
+                <LayoutGrid className="text-[#2DB6E8] flex-shrink-0 mt-1" size={24} />
+                <div>
+                  <p className="text-sm uppercase tracking-wider text-[#2F6F6B]/60 mb-1">
+                    Configuration
+                  </p>
+                  <p className="text-base md:text-lg font-medium text-[#2F6F6B]">
+                    {project.flat_config}
+                  </p>
+                </div>
+              </div>
+            )}
+
+            {project.builtup_area && (
+              <div className="flex items-start space-x-4">
+                <Maximize className="text-[#2DB6E8] flex-shrink-0 mt-1" size={24} />
+                <div>
+                  <p className="text-sm uppercase tracking-wider text-[#2F6F6B]/60 mb-1">
+                    Built-up Area
+                  </p>
+                  <p className="text-base md:text-lg font-medium text-[#2F6F6B]">
+                    {project.builtup_area}
+                  </p>
+                </div>
+              </div>
+            )}
+
+            {project.towers && (
+              <div className="flex items-start space-x-4">
+                <Building2 className="text-[#2DB6E8] flex-shrink-0 mt-1" size={24} />
+                <div>
+                  <p className="text-sm uppercase tracking-wider text-[#2F6F6B]/60 mb-1">
+                    Towers
+                  </p>
+                  <p className="text-base md:text-lg font-medium text-[#2F6F6B]">
+                    {project.towers}
+                  </p>
+                </div>
+              </div>
+            )}
           </div>
+
+          {project.rera_number && (
+            <div className="mt-6 pt-6 border-t border-gray-100">
+              <div className="flex items-center space-x-3">
+                <Shield className="text-[#2F6F6B] flex-shrink-0" size={18} />
+                <p className="text-sm text-[#2F6F6B]/70">
+                  <span className="font-medium text-[#2F6F6B]">RERA No:</span>{' '}
+                  {project.rera_number}
+                </p>
+              </div>
+            </div>
+          )}
         </div>
       </AnimatedSection>
 

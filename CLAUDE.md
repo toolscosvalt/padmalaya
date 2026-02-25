@@ -108,7 +108,7 @@ src/
 ├── lib/
 │   ├── supabase.ts          # 11 lines — Supabase client init
 │   ├── sanitize.ts          # 140 lines — 9 DOMPurify sanitization functions
-│   ├── types.ts             # 89 lines — all TypeScript interfaces
+│   ├── types.ts             # 93 lines — all TypeScript interfaces
 │   ├── utils.ts             # 18 lines — Google Drive URL converter
 │   └── __tests__/
 │       └── sanitize.test.ts # 309 lines — manual browser-console test suite
@@ -141,8 +141,9 @@ Fonts loaded via Google Fonts: `Cormorant Garamond` (headings), `Inter` (body).
 **projects**
 ```
 id (uuid PK), name, slug, tagline, description, location, status ('completed'|'ongoing'),
-external_url, hero_image_url, year_completed, total_units, total_area, display_order,
-is_featured, created_at, updated_at
+external_url, hero_image_url, year_completed, total_units, total_area,
+rera_number, flat_config, builtup_area, towers,
+display_order, is_featured, created_at, updated_at
 ```
 
 **project_images**
@@ -182,7 +183,7 @@ All tables have Row Level Security enabled:
 
 ### Migrations
 
-15 migrations in `supabase/migrations/`, applied chronologically (2026-02-22 through 2026-02-23).
+16 migrations in `supabase/migrations/`, applied chronologically (2026-02-22 through 2026-02-26).
 
 ---
 
