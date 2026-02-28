@@ -47,13 +47,15 @@ export function Navigation({ currentPage, onNavigate }: NavigationProps) {
           className="flex items-center space-x-3 group"
         >
           <img
-            src="/logo-icon.png"
+            src="/company-logo.png"
             alt="Padmalaya Group"
-            className="h-16 md:h-20 w-auto object-contain"
+            className="h-12 md:h-16 w-auto object-contain"
           />
-          <span className="font-serif text-2xl md:text-3xl font-semibold tracking-wide text-[#2DB6E8] transition-colors duration-200">
-            PADMALAYA
-          </span>
+          <img
+            src="/padmalaya-text.png"
+            alt="Padmalaya"
+            className="h-8 md:h-10 w-auto object-contain"
+          />
         </button>
 
         <div className="hidden md:flex items-center space-x-10">

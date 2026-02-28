@@ -15,13 +15,15 @@ export function Footer({ contactInfo }: FooterProps) {
           <div>
             <div className="flex items-center space-x-3 mb-4">
               <img
-                src="/logo-icon.png"
+                src="/company-logo.png"
                 alt="Padmalaya Group"
-                className="h-12 md:h-14 w-auto object-contain brightness-0 invert"
+                className="h-10 md:h-12 w-auto object-contain brightness-0 invert"
               />
-              <span className="font-serif text-2xl md:text-3xl font-semibold tracking-wide text-white">
-                PADMALAYA
-              </span>
+              <img
+                src="/padmalaya-text.png"
+                alt="Padmalaya"
+                className="h-5 md:h-6 w-auto object-contain brightness-0 invert"
+              />
             </div>
             <p className="text-[#F8FAFB]/80 leading-relaxed text-sm md:text-base">
               Building legacies of trust and quality since 1982. Creating spaces where families build their futures.
